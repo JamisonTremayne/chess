@@ -79,6 +79,8 @@ public class ChessPiece {
             return queenMoves(board, myPosition);
         } else if (type == PieceType.BISHOP) {
             return bishopMoves(board, myPosition);
+        } else if (type == PieceType.KNIGHT) {
+            return knightMoves(board, myPosition);
         } else if (type == PieceType.ROOK) {
             return rookMoves(board, myPosition);
         } else {
@@ -146,6 +148,29 @@ public class ChessPiece {
                         validMove = false;
                     }
                 }
+            }
+        }
+        return moves;
+    }
+
+    private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition myPosition) {
+        var moves = new HashSet<ChessMove>();
+
+        for (int i = 0; i < 8; i++) {
+            int dRow = 0;
+            int dCol = 0;
+            if (i == 0) {dRow = 2; dCol = 1;} //^^>
+            else if (i == 1) {dRow = 1; dCol = 2;} //>>^
+            else if (i == 2) {dRow = -1; dCol = 2;} //>>v
+            else if (i == 3) {dRow = -2; dCol = 1;} //vv>
+            else if (i == 4) {dRow = -2; dCol = -1;} //vv<
+            else if (i == 5) {dRow = -1; dCol = -2;} //<<v
+            else if (i == 6) {dRow = 1; dCol = -2;} //<<^
+            else {dRow = 2; dCol = -1;} //^^<
+
+            var newPosition = new ChessPosition(myPosition.getRow() + dRow, myPosition.getColumn() + dCol);
+            if (getPositionValid(board, newPosition)) {
+                moves.add(new ChessMove(myPosition, newPosition, type));
             }
         }
         return moves;

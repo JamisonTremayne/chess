@@ -75,6 +75,8 @@ public class ChessPiece {
     private Collection<ChessMove> moveCalculator(ChessBoard board, ChessPosition myPosition) {
         if (type == PieceType.KING) {
             return kingMoves(board, myPosition);
+        } else if (type == PieceType.QUEEN) {
+            return queenMoves(board, myPosition);
         } else if (type == PieceType.BISHOP) {
             return bishopMoves(board, myPosition);
         } else if (type == PieceType.ROOK) {
@@ -104,6 +106,17 @@ public class ChessPiece {
                 moves.add(new ChessMove(myPosition, newPosition, type));
             }
         }
+        return moves;
+    }
+
+    private Collection<ChessMove> queenMoves(ChessBoard board, ChessPosition myPosition) {
+        var moves = new HashSet<ChessMove>();
+
+        var bishopMoveSet = bishopMoves(board, myPosition);
+        var rookMoveSet = rookMoves(board, myPosition);
+        moves.addAll(bishopMoveSet);
+        moves.addAll(rookMoveSet);
+
         return moves;
     }
 

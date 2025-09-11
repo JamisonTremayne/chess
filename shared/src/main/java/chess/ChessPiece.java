@@ -14,6 +14,7 @@ public class ChessPiece {
 
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
+    private boolean enpassant = false;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
@@ -83,6 +84,8 @@ public class ChessPiece {
             return knightMoves(board, myPosition);
         } else if (type == PieceType.ROOK) {
             return rookMoves(board, myPosition);
+        } else if (type == PieceType.PAWN) {
+            return pawnMoves(board, myPosition);
         } else {
             return new HashSet<>();
         }
@@ -105,7 +108,7 @@ public class ChessPiece {
 
             var newPosition = new ChessPosition(myPosition.getRow() + dRow, myPosition.getColumn() + dCol);
             if (getPositionValid(board, newPosition)) {
-                moves.add(new ChessMove(myPosition, newPosition, type));
+                moves.add(new ChessMove(myPosition, newPosition, null));
             }
         }
         return moves;
@@ -143,7 +146,7 @@ public class ChessPiece {
                 var newPosition = new ChessPosition(currRow, currCol);
                 validMove = getPositionValid(board, newPosition);
                 if (validMove) {
-                    moves.add(new ChessMove(myPosition, newPosition, type));
+                    moves.add(new ChessMove(myPosition, newPosition, null));
                     if (getPositionEnemy(board, newPosition)) {
                         validMove = false;
                     }
@@ -170,7 +173,7 @@ public class ChessPiece {
 
             var newPosition = new ChessPosition(myPosition.getRow() + dRow, myPosition.getColumn() + dCol);
             if (getPositionValid(board, newPosition)) {
-                moves.add(new ChessMove(myPosition, newPosition, type));
+                moves.add(new ChessMove(myPosition, newPosition, null));
             }
         }
         return moves;
@@ -197,13 +200,67 @@ public class ChessPiece {
                 var newPosition = new ChessPosition(currRow, currCol);
                 validMove = getPositionValid(board, newPosition);
                 if (validMove) {
-                    moves.add(new ChessMove(myPosition, newPosition, type));
+                    moves.add(new ChessMove(myPosition, newPosition, null));
                     if (getPositionEnemy(board, newPosition)) {
                         validMove = false;
                     }
                 }
             }
         }
+        return moves;
+    }
+
+    private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition) {
+        var moves = new HashSet<ChessMove>();
+
+        int direction = 1;
+        if (pieceColor == ChessGame.TeamColor.BLACK) direction = -1;
+
+        boolean promotion = (direction == 1 && myPosition.getRow() == 7) || (direction == -1 && myPosition.getRow() == 2);
+
+        //Check the front position
+        var forwardPosition = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn());
+        if (getPositionValid(board, forwardPosition) && board.getPiece(forwardPosition) == null) {
+            if (promotion) {
+                moves.add(new ChessMove(myPosition, forwardPosition, PieceType.QUEEN));
+                moves.add(new ChessMove(myPosition, forwardPosition, PieceType.BISHOP));
+                moves.add(new ChessMove(myPosition, forwardPosition, PieceType.KNIGHT));
+                moves.add(new ChessMove(myPosition, forwardPosition, PieceType.ROOK));
+            } else {
+                moves.add(new ChessMove(myPosition, forwardPosition, null));
+            }
+        }
+        //If the pawn is at the beginning position, check the position two in front
+        if ((direction == 1 && myPosition.getRow() == 2) || (direction == -1 && myPosition.getRow() == 7)) {
+            var twoForwardPosition = new ChessPosition(myPosition.getRow() + (direction * 2), myPosition.getColumn());
+            if (getPositionValid(board, twoForwardPosition) && board.getPiece(forwardPosition) == null && board.getPiece(twoForwardPosition) == null) {
+                moves.add(new ChessMove(myPosition, twoForwardPosition, null));
+            }
+        }
+        //Check for enemies in the diagonals of the pawn
+        var leftEnemyPosition = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() - 1);
+        var rightEnemyPosition = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() + 1);
+        if (getPositionEnemy(board, leftEnemyPosition)) {
+            if (promotion) {
+                moves.add(new ChessMove(myPosition, leftEnemyPosition, PieceType.QUEEN));
+                moves.add(new ChessMove(myPosition, leftEnemyPosition, PieceType.BISHOP));
+                moves.add(new ChessMove(myPosition, leftEnemyPosition, PieceType.KNIGHT));
+                moves.add(new ChessMove(myPosition, leftEnemyPosition, PieceType.ROOK));
+            } else {
+                moves.add(new ChessMove(myPosition, leftEnemyPosition, null));
+            }
+        }
+        if (getPositionEnemy(board, rightEnemyPosition)) {
+            if (promotion) {
+                moves.add(new ChessMove(myPosition, rightEnemyPosition, PieceType.QUEEN));
+                moves.add(new ChessMove(myPosition, rightEnemyPosition, PieceType.BISHOP));
+                moves.add(new ChessMove(myPosition, rightEnemyPosition, PieceType.KNIGHT));
+                moves.add(new ChessMove(myPosition, rightEnemyPosition, PieceType.ROOK));
+            } else {
+                moves.add(new ChessMove(myPosition, rightEnemyPosition, null));
+            }
+        }
+
         return moves;
     }
 
@@ -221,6 +278,9 @@ public class ChessPiece {
 
     //Returns true if the position has an enemy piece, or false otherwise
     private boolean getPositionEnemy(ChessBoard board, ChessPosition position) {
+        if (position.getRow() < 1 || position.getColumn() < 1) return false;
+        else if (position.getRow() > 8 || position.getColumn() > 8) return false;
+
         var piece = board.getPiece(position);
         return piece != null && piece.getTeamColor() != pieceColor;
     }

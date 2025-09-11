@@ -77,6 +77,8 @@ public class ChessPiece {
             return kingMoves(board, myPosition);
         } else if (type == PieceType.BISHOP) {
             return bishopMoves(board, myPosition);
+        } else if (type == PieceType.ROOK) {
+            return rookMoves(board, myPosition);
         } else {
             return new HashSet<>();
         }
@@ -119,6 +121,37 @@ public class ChessPiece {
             else if (i == 1) {dRow = 1; dCol = -1;} //Up-left
             else if (i == 2) {dRow = -1; dCol = -1;} //Down-left
             else {dRow = -1; dCol = 1;} //Down-right
+
+            while (validMove) {
+                currRow += dRow;
+                currCol += dCol;
+                var newPosition = new ChessPosition(currRow, currCol);
+                validMove = getPositionValid(board, newPosition);
+                if (validMove) {
+                    moves.add(new ChessMove(myPosition, newPosition, type));
+                    if (getPositionEnemy(board, newPosition)) {
+                        validMove = false;
+                    }
+                }
+            }
+        }
+        return moves;
+    }
+
+    private Collection<ChessMove> rookMoves(ChessBoard board, ChessPosition myPosition) {
+        var moves = new HashSet<ChessMove>();
+
+        for (int i = 0; i < 4; i++) {
+            boolean validMove = true;
+            int currRow = myPosition.getRow();
+            int currCol = myPosition.getColumn();
+
+            var dRow = 0;
+            var dCol = 0;
+            if (i == 0) {dRow = 1;} //Up
+            else if (i == 1) {dCol = 1;} //Right
+            else if (i == 2) {dRow = -1;} //Down
+            else {dCol = -1;} //Left
 
             while (validMove) {
                 currRow += dRow;

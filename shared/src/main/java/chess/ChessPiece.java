@@ -73,68 +73,63 @@ public class ChessPiece {
 
 
     private Collection<ChessMove> moveCalculator(ChessBoard board, ChessPosition myPosition) {
-        if (type == PieceType.BISHOP) {
+        if (type == PieceType.KING) {
+            return kingMoves(board, myPosition);
+        } else if (type == PieceType.BISHOP) {
             return bishopMoves(board, myPosition);
         } else {
-            return new HashSet<ChessMove>();
+            return new HashSet<>();
         }
     }
 
+    private Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition) {
+        var moves = new HashSet<ChessMove>();
+        //Simply check each square directly around the king
+        for (int i = 0; i < 8; i++) {
+            int dRow = 0;
+            int dCol = 0;
+            if (i == 0) {dRow = 1;} //Up
+            else if (i == 1) {dRow = 1; dCol = 1;} //Up-right
+            else if (i == 2) {dCol = 1;} //Right
+            else if (i == 3) {dRow = -1; dCol = 1;} //Down-right
+            else if (i == 4) {dRow = -1;} //Down
+            else if (i == 5) {dRow = -1; dCol = -1;} //Down-left
+            else if (i == 6) {dCol = -1;} //Left
+            else {dRow = 1; dCol = -1;} //Up-left
+
+            var newPosition = new ChessPosition(myPosition.getRow() + dRow, myPosition.getColumn() + dCol);
+            if (getPositionValid(board, newPosition)) {
+                moves.add(new ChessMove(myPosition, newPosition, type));
+            }
+        }
+        return moves;
+    }
 
     private Collection<ChessMove> bishopMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
-        boolean validMove = true;
 
-        //Up Right
-        int currRow = myPosition.getRow();
-        int currCol = myPosition.getColumn();
-        while (validMove) {
-            currRow++; currCol++;
-            var newPosition = new ChessPosition(currRow, currCol);
-            validMove = getPositionValid(board, newPosition);
-            if (validMove) {
-                moves.add(new ChessMove(myPosition, newPosition, type));
-                if (getPositionEnemy(board, newPosition)) {
-                    validMove = false;
-                }
-            }
-        }
-        //Up Left
-        validMove = true; currRow = myPosition.getRow(); currCol = myPosition.getColumn();
-        while(validMove) {
-            currRow++; currCol--;
-            var newPosition = new ChessPosition(currRow, currCol);
-            validMove = getPositionValid(board, newPosition);
-            if (validMove) {
-                moves.add(new ChessMove(myPosition, newPosition, type));
-                if (getPositionEnemy(board, newPosition)) {
-                    validMove = false;
-                }
-            }
-        }
-        //Down Right
-        validMove = true; currRow = myPosition.getRow(); currCol = myPosition.getColumn();
-        while(validMove) {
-            currRow--; currCol++;
-            var newPosition = new ChessPosition(currRow, currCol);
-            validMove = getPositionValid(board, newPosition);
-            if (validMove) {
-                moves.add(new ChessMove(myPosition, newPosition, type));
-                if (getPositionEnemy(board, newPosition)) {
-                    validMove = false;
-                }
-            }
-        }
-        //Down Left
-        validMove = true; currRow = myPosition.getRow(); currCol = myPosition.getColumn();
-        while(validMove) {
-            currRow--; currCol--;
-            var newPosition = new ChessPosition(currRow, currCol);
-            validMove = getPositionValid(board, newPosition);
-            if (validMove) {
-                moves.add(new ChessMove(myPosition, newPosition, type));
-                if (getPositionEnemy(board, newPosition)) {
-                    validMove = false;
+        for (int i = 0; i < 4; i++) {
+            boolean validMove = true;
+            int currRow = myPosition.getRow();
+            int currCol = myPosition.getColumn();
+
+            var dRow = 0;
+            var dCol = 0;
+            if (i == 0) {dRow = 1; dCol = 1;} //Up-right
+            else if (i == 1) {dRow = 1; dCol = -1;} //Up-left
+            else if (i == 2) {dRow = -1; dCol = -1;} //Down-left
+            else {dRow = -1; dCol = 1;} //Down-right
+
+            while (validMove) {
+                currRow += dRow;
+                currCol += dCol;
+                var newPosition = new ChessPosition(currRow, currCol);
+                validMove = getPositionValid(board, newPosition);
+                if (validMove) {
+                    moves.add(new ChessMove(myPosition, newPosition, type));
+                    if (getPositionEnemy(board, newPosition)) {
+                        validMove = false;
+                    }
                 }
             }
         }

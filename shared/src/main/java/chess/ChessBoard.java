@@ -39,6 +39,31 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        throw new RuntimeException("Not implemented");
+        //Make an individual piece for each part of the board, and place them there
+        for (int i = 0; i < 2; i++) {
+            ChessGame.TeamColor currentTeam;
+            if (i == 0) { currentTeam = ChessGame.TeamColor.WHITE; }
+            else { currentTeam = ChessGame.TeamColor.BLACK; }
+            //Add each individual piece
+            for (int j = 0; j < 8; j++) {
+                ChessPiece.PieceType currentType;
+                if (j == 0 || j == 7) { currentType = ChessPiece.PieceType.ROOK; }
+                else if (j == 1 || j == 6) { currentType = ChessPiece.PieceType.KNIGHT; }
+                else if (j == 2 || j == 5) { currentType = ChessPiece.PieceType.BISHOP; }
+                else if (j == 3) { currentType = ChessPiece.PieceType.QUEEN; }
+                else { currentType = ChessPiece.PieceType.KING; }
+
+                var newPiece = new ChessPiece(currentTeam, currentType);
+                int row = 1;
+                if (currentTeam == ChessGame.TeamColor.BLACK) { row = 8; }
+                addPiece(new ChessPosition(row, j + 1), newPiece);
+            }
+            //Add all the pawns
+            for (int j = 0; j < 8; j++) {
+                int row = 2;
+                if (currentTeam == ChessGame.TeamColor.BLACK) { row = 7; }
+                addPiece(new ChessPosition(row, j + 1), new ChessPiece(currentTeam, ChessPiece.PieceType.PAWN));
+            }
+        }
     }
 }

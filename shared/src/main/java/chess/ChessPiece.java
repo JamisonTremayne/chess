@@ -143,20 +143,24 @@ public class ChessPiece {
             else if (i == 1) {dRow = 1; dCol = -1;} //Up-left
             else if (i == 2) {dRow = -1; dCol = -1;} //Down-left
             else {dRow = -1; dCol = 1;} //Down-right
-
+            //Iterate through bishop moves
             while (validMove) {
+                //Change positions to be diagonals.
                 currRow += dRow;
                 currCol += dCol;
                 var newPosition = new ChessPosition(currRow, currCol);
                 validMove = getPositionValid(board, newPosition);
+                //If the bishop move is valid, add it to the list
                 if (validMove) {
                     moves.add(new ChessMove(myPosition, newPosition, null));
+                    //If the bishop move is attacking an enemy, don't go past the enemy
                     if (getPositionEnemy(board, newPosition)) {
                         validMove = false;
                     }
                 }
             }
         }
+        //Return the bishop's moves
         return moves;
     }
 
@@ -199,20 +203,24 @@ public class ChessPiece {
             else if (i == 1) {dCol = 1;} //Right
             else if (i == 2) {dRow = -1;} //Down
             else {dCol = -1;} //Left
-
+            //Iterate through rook moves
             while (validMove) {
+                //Change positions to be straight lines.
                 currRow += dRow;
                 currCol += dCol;
                 var newPosition = new ChessPosition(currRow, currCol);
                 validMove = getPositionValid(board, newPosition);
+                //If the rook move is valid, add it to the list
                 if (validMove) {
                     moves.add(new ChessMove(myPosition, newPosition, null));
+                    //If the rook move is attacking an enemy, don't go past the enemy
                     if (getPositionEnemy(board, newPosition)) {
                         validMove = false;
                     }
                 }
             }
         }
+        //Return the rook's moves
         return moves;
     }
 
@@ -241,7 +249,9 @@ public class ChessPiece {
         //If the pawn is at the beginning position, check the position two in front
         if ((direction == 1 && myPosition.getRow() == 2) || (direction == -1 && myPosition.getRow() == 7)) {
             var twoForwardPosition = new ChessPosition(myPosition.getRow() + (direction * 2), col);
-            if (getPositionValid(board, twoForwardPosition) && board.getPiece(forwardPosition) == null && board.getPiece(twoForwardPosition) == null) {
+            if (getPositionValid(board, twoForwardPosition) &&
+                    board.getPiece(forwardPosition) == null &&
+                    board.getPiece(twoForwardPosition) == null) {
                 moves.add(new ChessMove(myPosition, twoForwardPosition, null));
             }
         }

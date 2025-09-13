@@ -91,7 +91,8 @@ public class ChessPiece {
         }
     }
 
-    //Kings can move one square in any direction around them, and are blocked by pieces of their same color. They also aren't supposed to move in squares that could put them in danger.
+    //Kings can move one square in any direction around them, and are blocked by pieces of their same color.
+    //They also aren't supposed to move in squares that could put them in danger.
     private Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
         //Simply check each square directly around the king
@@ -215,17 +216,18 @@ public class ChessPiece {
         return moves;
     }
 
-    //Pawns move one forward, can move two if they haven't been moved yet, and can move diagonally if an enemy piece is there. 
+    //Pawns move one forward, can move two if they haven't been moved yet, and can move diagonally if an enemy piece is there.
     private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
 
         int direction = 1;
-        if (pieceColor == ChessGame.TeamColor.BLACK) direction = -1;
+        if (pieceColor == ChessGame.TeamColor.BLACK) { direction = -1; }
 
         boolean promotion = (direction == 1 && myPosition.getRow() == 7) || (direction == -1 && myPosition.getRow() == 2);
+        int col = myPosition.getColumn();
 
         //Check the front position
-        var forwardPosition = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn());
+        var forwardPosition = new ChessPosition(myPosition.getRow() + direction, col);
         if (getPositionValid(board, forwardPosition) && board.getPiece(forwardPosition) == null) {
             if (promotion) {
                 moves.add(new ChessMove(myPosition, forwardPosition, PieceType.QUEEN));
@@ -238,14 +240,14 @@ public class ChessPiece {
         }
         //If the pawn is at the beginning position, check the position two in front
         if ((direction == 1 && myPosition.getRow() == 2) || (direction == -1 && myPosition.getRow() == 7)) {
-            var twoForwardPosition = new ChessPosition(myPosition.getRow() + (direction * 2), myPosition.getColumn());
+            var twoForwardPosition = new ChessPosition(myPosition.getRow() + (direction * 2), col);
             if (getPositionValid(board, twoForwardPosition) && board.getPiece(forwardPosition) == null && board.getPiece(twoForwardPosition) == null) {
                 moves.add(new ChessMove(myPosition, twoForwardPosition, null));
             }
         }
         //Check for enemies in the diagonals of the pawn
-        var leftEnemyPosition = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() - 1);
-        var rightEnemyPosition = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() + 1);
+        var leftEnemyPosition = new ChessPosition(myPosition.getRow() + direction, col - 1);
+        var rightEnemyPosition = new ChessPosition(myPosition.getRow() + direction, col + 1);
         if (getPositionEnemy(board, leftEnemyPosition)) {
             if (promotion) {
                 moves.add(new ChessMove(myPosition, leftEnemyPosition, PieceType.QUEEN));
@@ -284,8 +286,8 @@ public class ChessPiece {
 
     //Returns true if the position has an enemy piece, or false otherwise
     private boolean getPositionEnemy(ChessBoard board, ChessPosition position) {
-        if (position.getRow() < 1 || position.getColumn() < 1) return false;
-        else if (position.getRow() > 8 || position.getColumn() > 8) return false;
+        if (position.getRow() < 1 || position.getColumn() < 1) { return false; }
+        else if (position.getRow() > 8 || position.getColumn() > 8) { return false; }
 
         var piece = board.getPiece(position);
         return piece != null && piece.getTeamColor() != pieceColor;

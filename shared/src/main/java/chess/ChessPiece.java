@@ -134,8 +134,8 @@ public class ChessPiece {
 
         for (int i = 0; i < 4; i++) {
             boolean validMove = true;
-            int currRow = myPosition.getRow();
-            int currCol = myPosition.getColumn();
+            int bishopRow = myPosition.getRow();
+            int bishopCol = myPosition.getColumn();
 
             var dRow = 0;
             var dCol = 0;
@@ -146,15 +146,15 @@ public class ChessPiece {
             //Iterate through bishop moves
             while (validMove) {
                 //Change positions to be diagonals.
-                currRow += dRow;
-                currCol += dCol;
-                var newPosition = new ChessPosition(currRow, currCol);
-                validMove = getPositionValid(board, newPosition);
+                bishopRow += dRow;
+                bishopCol += dCol;
+                var bishopPosition = new ChessPosition(bishopRow, bishopCol);
+                validMove = getPositionValid(board, bishopPosition);
                 //If the bishop move is valid, add it to the list
                 if (validMove) {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
+                    moves.add(new ChessMove(myPosition, bishopPosition, null));
                     //If the bishop move is attacking an enemy, don't go past the enemy
-                    if (getPositionEnemy(board, newPosition)) {
+                    if (getPositionEnemy(board, bishopPosition)) {
                         validMove = false;
                     }
                 }
@@ -194,8 +194,8 @@ public class ChessPiece {
 
         for (int i = 0; i < 4; i++) {
             boolean validMove = true;
-            int currRow = myPosition.getRow();
-            int currCol = myPosition.getColumn();
+            int rookRow = myPosition.getRow();
+            int rookCol = myPosition.getColumn();
 
             var dRow = 0;
             var dCol = 0;
@@ -206,15 +206,15 @@ public class ChessPiece {
             //Iterate through rook moves
             while (validMove) {
                 //Change positions to be straight lines.
-                currRow += dRow;
-                currCol += dCol;
-                var newPosition = new ChessPosition(currRow, currCol);
-                validMove = getPositionValid(board, newPosition);
+                rookRow += dRow;
+                rookCol += dCol;
+                var rookPosition = new ChessPosition(rookRow, rookCol);
+                validMove = getPositionValid(board, rookPosition);
                 //If the rook move is valid, add it to the list
                 if (validMove) {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
+                    moves.add(new ChessMove(myPosition, rookPosition, null));
                     //If the rook move is attacking an enemy, don't go past the enemy
-                    if (getPositionEnemy(board, newPosition)) {
+                    if (getPositionEnemy(board, rookPosition)) {
                         validMove = false;
                     }
                 }

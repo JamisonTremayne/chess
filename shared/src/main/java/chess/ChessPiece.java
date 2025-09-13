@@ -91,6 +91,7 @@ public class ChessPiece {
         }
     }
 
+    //Kings can move one square in any direction around them, and are blocked by pieces of their same color. They also aren't supposed to move in squares that could put them in danger.
     private Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
         //Simply check each square directly around the king
@@ -114,6 +115,7 @@ public class ChessPiece {
         return moves;
     }
 
+    //Queens moves are just a combination of Bishop moves and Rook moves.
     private Collection<ChessMove> queenMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
 
@@ -125,6 +127,7 @@ public class ChessPiece {
         return moves;
     }
 
+    //Bishops move in diagonals, are blocked by pieces of their same color, and can take enemy pieces, but cannot pass enemy pieces.
     private Collection<ChessMove> bishopMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
 
@@ -156,6 +159,7 @@ public class ChessPiece {
         return moves;
     }
 
+    //Knights move in L patterns, and are blocked by pieces of their same color. No other restrictions.
     private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
 
@@ -179,6 +183,7 @@ public class ChessPiece {
         return moves;
     }
 
+    //Rooks move straight in a line, are blocked by pieces of their same color, and can take an enemy piece, but cannot move behond that piece.
     private Collection<ChessMove> rookMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
 
@@ -210,6 +215,7 @@ public class ChessPiece {
         return moves;
     }
 
+    //Pawns move one forward, can move two if they haven't been moved yet, and can move diagonally if an enemy piece is there. 
     private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition) {
         var moves = new HashSet<ChessMove>();
 

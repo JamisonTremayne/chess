@@ -14,7 +14,6 @@ public class ChessPiece {
 
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
-    private boolean enpassant = false;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
@@ -47,15 +46,12 @@ public class ChessPiece {
         return type;
     }
 
-    /**
-     * Calculates all the positions a chess piece can move to
-     * Does not take into account moves that are illegal due to leaving the king in
-     * danger
-     *
-     * @return Collection of valid moves
-     */
-    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        return moveCalculator(board, myPosition);
+    @Override
+    public String toString() {
+        return "ChessPiece{" +
+                "pieceColor=" + pieceColor +
+                ", type=" + type +
+                '}';
     }
 
     @Override
@@ -72,234 +68,195 @@ public class ChessPiece {
         return Objects.hash(pieceColor, type);
     }
 
-
-    private Collection<ChessMove> moveCalculator(ChessBoard board, ChessPosition myPosition) {
-        if (type == PieceType.KING) {
-            return kingMoves(board, myPosition);
-        } else if (type == PieceType.QUEEN) {
-            return queenMoves(board, myPosition);
-        } else if (type == PieceType.BISHOP) {
-            return bishopMoves(board, myPosition);
-        } else if (type == PieceType.KNIGHT) {
-            return knightMoves(board, myPosition);
-        } else if (type == PieceType.ROOK) {
-            return rookMoves(board, myPosition);
-        } else if (type == PieceType.PAWN) {
-            return pawnMoves(board, myPosition);
-        } else {
-            return new HashSet<>();
-        }
+    /**
+     * Calculates all the positions a chess piece can move to
+     * Does not take into account moves that are illegal due to leaving the king in
+     * danger
+     *
+     * @return Collection of valid moves
+     */
+    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+        return switch (type) {
+            case KING -> kingMoves(board, myPosition);
+            case QUEEN -> queenMoves(board, myPosition);
+            case BISHOP -> bishopMoves(board, myPosition);
+            case KNIGHT -> knightMoves(board, myPosition);
+            case ROOK -> rookMoves(board, myPosition);
+            case PAWN -> pawnMoves(board, myPosition);
+        };
     }
 
-    //Kings can move one square in any direction around them, and are blocked by pieces of their same color.
-    //They also aren't supposed to move in squares that could put them in danger.
+
     private Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition) {
-        var moves = new HashSet<ChessMove>();
-        //Simply check each square directly around the king
-        for (int i = 0; i < 8; i++) {
-            int dRow = 0;
-            int dCol = 0;
-            if (i == 0) {dRow = 1;} //Up
-            else if (i == 1) {dRow = 1; dCol = 1;} //Up-right
-            else if (i == 2) {dCol = 1;} //Right
-            else if (i == 3) {dRow = -1; dCol = 1;} //Down-right
-            else if (i == 4) {dRow = -1;} //Down
-            else if (i == 5) {dRow = -1; dCol = -1;} //Down-left
-            else if (i == 6) {dCol = -1;} //Left
-            else {dRow = 1; dCol = -1;} //Up-left
+        HashSet<ChessMove> moves = new HashSet<ChessMove>();
 
-            var newPosition = new ChessPosition(myPosition.getRow() + dRow, myPosition.getColumn() + dCol);
-            if (getPositionValid(board, newPosition)) {
+        for (int i = 0; i < 8; i++) {
+            int rowD = (i < 3 ? -1 : i < 6 ? 1 : 0);
+            int colD = (i < 7 ? (i % 3) - 1 : 1);
+
+            ChessPosition newPosition = new ChessPosition(myPosition.getRow() + rowD, myPosition.getColumn() + colD);
+            if (isMoveValid(board, newPosition, true)) {
                 moves.add(new ChessMove(myPosition, newPosition, null));
             }
         }
+
         return moves;
     }
 
-    //Queens moves are just a combination of Bishop moves and Rook moves.
     private Collection<ChessMove> queenMoves(ChessBoard board, ChessPosition myPosition) {
-        var moves = new HashSet<ChessMove>();
+        HashSet<ChessMove> moves = new HashSet<ChessMove>();
 
-        var bishopMoveSet = bishopMoves(board, myPosition);
-        var rookMoveSet = rookMoves(board, myPosition);
-        moves.addAll(bishopMoveSet);
-        moves.addAll(rookMoveSet);
+        moves.addAll(bishopMoves(board, myPosition));
+        moves.addAll(rookMoves(board, myPosition));
 
         return moves;
     }
 
-    //Bishops move in diagonals, are blocked by pieces of their same color, and can take enemy pieces, but cannot pass enemy pieces.
     private Collection<ChessMove> bishopMoves(ChessBoard board, ChessPosition myPosition) {
-        var moves = new HashSet<ChessMove>();
+        HashSet<ChessMove> moves = new HashSet<ChessMove>();
+
+        boolean validMove = true;
 
         for (int i = 0; i < 4; i++) {
-            boolean validMove = true;
-            int bishopRow = myPosition.getRow();
-            int bishopCol = myPosition.getColumn();
+            int currentRow = myPosition.getRow();
+            int currentCol = myPosition.getColumn();
+            validMove = true;
 
-            var dRow = 0;
-            var dCol = 0;
-            if (i == 0) {dRow = 1; dCol = 1;} //Up-right
-            else if (i == 1) {dRow = 1; dCol = -1;} //Up-left
-            else if (i == 2) {dRow = -1; dCol = -1;} //Down-left
-            else {dRow = -1; dCol = 1;} //Down-right
-            //Iterate through bishop moves
+            int rowD = (i < 2 ? -1 : 1);
+            int colD = (i % 2 == 0 ? -1 : 1);
+
             while (validMove) {
-                //Change positions to be diagonals.
-                bishopRow += dRow;
-                bishopCol += dCol;
-                var bishopPosition = new ChessPosition(bishopRow, bishopCol);
-                validMove = getPositionValid(board, bishopPosition);
-                //If the bishop move is valid, add it to the list
+                currentRow += rowD;
+                currentCol += colD;
+                ChessPosition newPosition = new ChessPosition(currentRow, currentCol);
+                validMove = isMoveValid(board, newPosition, true);
                 if (validMove) {
-                    moves.add(new ChessMove(myPosition, bishopPosition, null));
-                    //If the bishop move is attacking an enemy, don't go past the enemy
-                    if (getPositionEnemy(board, bishopPosition)) {
-                        validMove = false;
-                    }
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                    validMove = !hasEnemy(board, newPosition);
                 }
             }
         }
-        //Return the bishop's moves
+
         return moves;
     }
 
-    //Knights move in L patterns, and are blocked by pieces of their same color. No other restrictions.
     private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition myPosition) {
-        var moves = new HashSet<ChessMove>();
+        HashSet<ChessMove> moves = new HashSet<ChessMove>();
 
         for (int i = 0; i < 8; i++) {
-            int dRow = 0;
-            int dCol = 0;
-            if (i == 0) {dRow = 2; dCol = 1;} //^^>
-            else if (i == 1) {dRow = 1; dCol = 2;} //>>^
-            else if (i == 2) {dRow = -1; dCol = 2;} //>>v
-            else if (i == 3) {dRow = -2; dCol = 1;} //vv>
-            else if (i == 4) {dRow = -2; dCol = -1;} //vv<
-            else if (i == 5) {dRow = -1; dCol = -2;} //<<v
-            else if (i == 6) {dRow = 1; dCol = -2;} //<<^
-            else {dRow = 2; dCol = -1;} //^^<
+            int rowD = (i < 2 ? -2 : i < 4 ? -1 : i < 6 ? 1 : 2);
+            int colD = (i < 2 || i >= 6 ? (i % 2 == 0 ? 1 : -1) : 2 * (i % 2 == 0 ? 1 : -1));
 
-            var newPosition = new ChessPosition(myPosition.getRow() + dRow, myPosition.getColumn() + dCol);
-            if (getPositionValid(board, newPosition)) {
+            var newPosition = new ChessPosition(myPosition.getRow() + rowD, myPosition.getColumn() + colD);
+            if (isMoveValid(board, newPosition, true)) {
                 moves.add(new ChessMove(myPosition, newPosition, null));
             }
         }
+
         return moves;
     }
 
-    //Rooks move straight in a line, are blocked by pieces of their same color, and can take an enemy piece, but cannot move behond that piece.
     private Collection<ChessMove> rookMoves(ChessBoard board, ChessPosition myPosition) {
-        var moves = new HashSet<ChessMove>();
+        HashSet<ChessMove> moves = new HashSet<ChessMove>();
+
+        boolean validMove = true;
 
         for (int i = 0; i < 4; i++) {
-            boolean validMove = true;
-            int rookRow = myPosition.getRow();
-            int rookCol = myPosition.getColumn();
+            int currentRow = myPosition.getRow();
+            int currentCol = myPosition.getColumn();
+            validMove = true;
 
-            var dRow = 0;
-            var dCol = 0;
-            if (i == 0) {dRow = 1;} //Up
-            else if (i == 1) {dCol = 1;} //Right
-            else if (i == 2) {dRow = -1;} //Down
-            else {dCol = -1;} //Left
-            //Iterate through rook moves
+            int rowD = (i == 0 ? -1 : i == 1 ? 1 : 0);
+            int colD = (i < 2 ? 0 : i == 2 ? -1 : 1);
+
             while (validMove) {
-                //Change positions to be straight lines.
-                rookRow += dRow;
-                rookCol += dCol;
-                var rookPosition = new ChessPosition(rookRow, rookCol);
-                validMove = getPositionValid(board, rookPosition);
-                //If the rook move is valid, add it to the list
+                currentRow += rowD;
+                currentCol += colD;
+                ChessPosition newPosition = new ChessPosition(currentRow, currentCol);
+                validMove = isMoveValid(board, newPosition, true);
                 if (validMove) {
-                    moves.add(new ChessMove(myPosition, rookPosition, null));
-                    //If the rook move is attacking an enemy, don't go past the enemy
-                    if (getPositionEnemy(board, rookPosition)) {
-                        validMove = false;
-                    }
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                    validMove = !hasEnemy(board, newPosition);
                 }
             }
         }
-        //Return the rook's moves
+
         return moves;
     }
 
-    //Pawns move one forward, can move two if they haven't been moved yet, and can move diagonally if an enemy piece is there.
     private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition) {
-        var moves = new HashSet<ChessMove>();
+        HashSet<ChessMove> moves = new HashSet<ChessMove>();
 
-        int direction = 1;
-        if (pieceColor == ChessGame.TeamColor.BLACK) { direction = -1; }
-
-        boolean promotion = (direction == 1 && myPosition.getRow() == 7) || (direction == -1 && myPosition.getRow() == 2);
-        int col = myPosition.getColumn();
-
-        //Check the front position
-        var forwardPosition = new ChessPosition(myPosition.getRow() + direction, col);
-        if (getPositionValid(board, forwardPosition) && board.getPiece(forwardPosition) == null) {
+        int direction = (pieceColor == ChessGame.TeamColor.WHITE ? 1 : -1);
+        boolean promotion = (direction == 1 && myPosition.getRow() == 7) ||
+                (direction == -1 && myPosition.getRow() == 2);
+        //Front movement
+        var frontPosition = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn());
+        if (isMoveValid(board, frontPosition, false)) {
             if (promotion) {
-                moves.add(new ChessMove(myPosition, forwardPosition, PieceType.QUEEN));
-                moves.add(new ChessMove(myPosition, forwardPosition, PieceType.BISHOP));
-                moves.add(new ChessMove(myPosition, forwardPosition, PieceType.KNIGHT));
-                moves.add(new ChessMove(myPosition, forwardPosition, PieceType.ROOK));
+                moves.add(new ChessMove(myPosition, frontPosition, PieceType.QUEEN));
+                moves.add(new ChessMove(myPosition, frontPosition, PieceType.BISHOP));
+                moves.add(new ChessMove(myPosition, frontPosition, PieceType.KNIGHT));
+                moves.add(new ChessMove(myPosition, frontPosition, PieceType.ROOK));
             } else {
-                moves.add(new ChessMove(myPosition, forwardPosition, null));
+                moves.add(new ChessMove(myPosition, frontPosition, null));
+            }
+            if ((direction == 1 && myPosition.getRow() == 2) || (direction == -1 && myPosition.getRow() == 7)) {
+                var twoFrontPosition = new ChessPosition(myPosition.getRow() + (direction * 2), myPosition.getColumn());
+                if (isMoveValid(board, twoFrontPosition, false)) {
+                    moves.add(new ChessMove(myPosition, twoFrontPosition, null));
+                }
             }
         }
-        //If the pawn is at the beginning position, check the position two in front
-        if ((direction == 1 && myPosition.getRow() == 2) || (direction == -1 && myPosition.getRow() == 7)) {
-            var twoForwardPosition = new ChessPosition(myPosition.getRow() + (direction * 2), col);
-            if (getPositionValid(board, twoForwardPosition) &&
-                    board.getPiece(forwardPosition) == null &&
-                    board.getPiece(twoForwardPosition) == null) {
-                moves.add(new ChessMove(myPosition, twoForwardPosition, null));
+        //Enemy diagonals
+        var enemyPositionLeft = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() - 1);
+        var enemyPositionRight = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() + 1);
+        if (hasEnemy(board, enemyPositionLeft)) {
+            if (promotion) {
+                moves.add(new ChessMove(myPosition, enemyPositionLeft, PieceType.QUEEN));
+                moves.add(new ChessMove(myPosition, enemyPositionLeft, PieceType.BISHOP));
+                moves.add(new ChessMove(myPosition, enemyPositionLeft, PieceType.KNIGHT));
+                moves.add(new ChessMove(myPosition, enemyPositionLeft, PieceType.ROOK));
+            } else {
+                moves.add(new ChessMove(myPosition, enemyPositionLeft, null));
             }
         }
-        //Check for enemies in the diagonals of the pawn
-        var leftEnemyPosition = new ChessPosition(myPosition.getRow() + direction, col - 1);
-        var rightEnemyPosition = new ChessPosition(myPosition.getRow() + direction, col + 1);
-        if (getPositionEnemy(board, leftEnemyPosition)) {
+        if (hasEnemy(board, enemyPositionRight)) {
             if (promotion) {
-                moves.add(new ChessMove(myPosition, leftEnemyPosition, PieceType.QUEEN));
-                moves.add(new ChessMove(myPosition, leftEnemyPosition, PieceType.BISHOP));
-                moves.add(new ChessMove(myPosition, leftEnemyPosition, PieceType.KNIGHT));
-                moves.add(new ChessMove(myPosition, leftEnemyPosition, PieceType.ROOK));
+                moves.add(new ChessMove(myPosition, enemyPositionRight, PieceType.QUEEN));
+                moves.add(new ChessMove(myPosition, enemyPositionRight, PieceType.BISHOP));
+                moves.add(new ChessMove(myPosition, enemyPositionRight, PieceType.KNIGHT));
+                moves.add(new ChessMove(myPosition, enemyPositionRight, PieceType.ROOK));
             } else {
-                moves.add(new ChessMove(myPosition, leftEnemyPosition, null));
-            }
-        }
-        if (getPositionEnemy(board, rightEnemyPosition)) {
-            if (promotion) {
-                moves.add(new ChessMove(myPosition, rightEnemyPosition, PieceType.QUEEN));
-                moves.add(new ChessMove(myPosition, rightEnemyPosition, PieceType.BISHOP));
-                moves.add(new ChessMove(myPosition, rightEnemyPosition, PieceType.KNIGHT));
-                moves.add(new ChessMove(myPosition, rightEnemyPosition, PieceType.ROOK));
-            } else {
-                moves.add(new ChessMove(myPosition, rightEnemyPosition, null));
+                moves.add(new ChessMove(myPosition, enemyPositionRight, null));
             }
         }
 
         return moves;
     }
 
-    //Returns true if the position is a valid spot, or false otherwise
-    private boolean getPositionValid(ChessBoard board, ChessPosition position) {
-        if (position.getRow() < 1 || position.getColumn() < 1) {
+    private boolean isMoveValid(ChessBoard board, ChessPosition position, boolean canTake) {
+        if (position.getRow() < 1 || position.getRow() > 8) {
             return false;
-        } else if (position.getRow() > 8 || position.getColumn() > 8) {
-            return false;
-        } else if (board.getPiece(position) != null && board.getPiece(position).getTeamColor() == pieceColor) {
+        } else if (position.getColumn() < 1 || position.getColumn() > 8) {
             return false;
         }
-        return true;
+        var piece = board.getPiece(position);
+        if (piece != null && (piece.getTeamColor() == getTeamColor() || !canTake)) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
-    //Returns true if the position has an enemy piece, or false otherwise
-    private boolean getPositionEnemy(ChessBoard board, ChessPosition position) {
-        if (position.getRow() < 1 || position.getColumn() < 1) { return false; }
-        else if (position.getRow() > 8 || position.getColumn() > 8) { return false; }
+    private boolean hasEnemy(ChessBoard board, ChessPosition position) {
+        if (position.getRow() < 1 || position.getRow() > 8) {
+            return false;
+        } else if (position.getColumn() < 1 || position.getColumn() > 8) {
+            return false;
+        }
 
         var piece = board.getPiece(position);
-        return piece != null && piece.getTeamColor() != pieceColor;
+        return (piece != null && piece.getTeamColor() != getTeamColor());
     }
 }

@@ -13,7 +13,7 @@ public class ChessBoard {
 
     private ChessPiece[][] board = new ChessPiece[8][8];
     public ChessBoard() {
-        
+        resetBoard();
     }
 
     /**
@@ -24,6 +24,10 @@ public class ChessBoard {
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
         board[position.getRow()-1][position.getColumn()-1] = piece;
+    }
+
+    public void removePiece(ChessPosition position) {
+        board[position.getRow()-1][position.getColumn()-1] = null;
     }
 
     /**
@@ -56,6 +60,11 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                removePiece(new ChessPosition(i + 1, j + 1));
+            }
+        }
         //Make an individual piece for each part of the board, and place them there
         for (int i = 0; i < 2; i++) {
             ChessGame.TeamColor currentTeam;

@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -65,8 +66,6 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        checkValidMove(move);
-
         ChessPiece piece = board.getPiece(move.getStartPosition());
         board.addPiece(move.getEndPosition(), piece);
         board.removePiece(move.getStartPosition());
@@ -121,19 +120,26 @@ public class ChessGame {
         return board;
     }
 
-    private void checkValidMove(ChessMove move) throws InvalidMoveException {
-        ChessPosition position = move.getEndPosition();
-        if (position.getRow() < 1 || position.getRow() > 8) {
-            throw new InvalidMoveException();
-        } else if (position.getColumn() < 1 || position.getColumn() > 8) {
-            throw new InvalidMoveException();
-        }
-        var currentPiece = board.getPiece(move.getStartPosition());
-        var enemyPiece = board.getPiece(position);
-        if (enemyPiece != null && (enemyPiece.getTeamColor() == currentPiece.getTeamColor())) {
-            throw new InvalidMoveException();
-        }
+    private boolean makeGhostMove(ChessMove move) {
+        HashSet<ChessMove> enemyMoves = getEnemyMoves(currentTurn);
+
+        return true;
     }
 
-    private 
+    private HashSet<ChessMove> getEnemyMoves(TeamColor team) {
+        HashSet<ChessMove> enemyMoves = new HashSet<>();
+        TeamColor enemyTeam = (team == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
+
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                ChessPosition position = new ChessPosition(i+1, j+1);
+                ChessPiece piece = board.getPiece(position);
+                if (piece != null && piece.getTeamColor() == enemyTeam) {
+                    enemyMoves.addAll(piece.pieceMoves(board, position));
+                }
+            }
+        }
+
+        return enemyMoves;
+    }
 }

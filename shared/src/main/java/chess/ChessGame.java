@@ -78,7 +78,8 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        HashSet<ChessMove> enemyMoves = getEnemyMoves(teamColor);
+
     }
 
     /**
@@ -121,9 +122,20 @@ public class ChessGame {
     }
 
     private boolean makeGhostMove(ChessMove move) {
-        HashSet<ChessMove> enemyMoves = getEnemyMoves(currentTurn);
+        //Make the move
+        ChessPiece piece = board.getPiece(move.getStartPosition());
+        ChessPiece enemyPiece = board.getPiece(move.getEndPosition());
+        board.addPiece(move.getEndPosition(), piece);
+        board.removePiece(move.getStartPosition());
 
-        return true;
+        //Check if the player is in check
+        boolean inCheck = isInCheck(currentTurn);
+
+        //Reverse the move
+        board.addPiece(move.getStartPosition(), piece);
+        board.addPiece(move.getEndPosition(), enemyPiece);
+
+        return inCheck;
     }
 
     private HashSet<ChessMove> getEnemyMoves(TeamColor team) {

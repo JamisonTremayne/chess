@@ -54,7 +54,7 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece piece = board.getPiece(startPosition);
-        if (piece == null || piece.getTeamColor() != currentTurn) {
+        if (piece == null) {
             return new HashSet<ChessMove>();
         } else {
             HashSet<ChessMove> moves = (HashSet<ChessMove>) piece.pieceMoves(getBoard(), startPosition);
@@ -75,12 +75,13 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        ChessPiece piece = board.getPiece(move.getStartPosition());
+
         HashSet<ChessMove> validMoves = (HashSet<ChessMove>) validMoves(move.getStartPosition());
-        if (!validMoves.contains(move)) {
+        if (!validMoves.contains(move) || piece.getTeamColor() != currentTurn) {
             throw new InvalidMoveException();
         }
 
-        ChessPiece piece = board.getPiece(move.getStartPosition());
         if (move.getPromotionPiece() != null) {
             piece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
         }

@@ -81,6 +81,8 @@ public class ChessGame {
         ChessPiece piece = board.getPiece(move.getStartPosition());
         board.addPiece(move.getEndPosition(), piece);
         board.removePiece(move.getStartPosition());
+
+        currentTurn = (currentTurn == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
     }
 
     /**

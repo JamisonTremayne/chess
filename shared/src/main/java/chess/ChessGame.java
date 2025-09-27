@@ -54,7 +54,7 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece piece = board.getPiece(startPosition);
-        if (piece == null) {
+        if (piece == null || piece.getTeamColor() != currentTurn) {
             return new HashSet<ChessMove>();
         } else {
             HashSet<ChessMove> moves = (HashSet<ChessMove>) piece.pieceMoves(getBoard(), startPosition);

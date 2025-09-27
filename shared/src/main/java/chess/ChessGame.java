@@ -20,6 +20,9 @@ public class ChessGame {
     private boolean blackQueensideCastle;
     private boolean blackKingsideCastle;
 
+    private boolean canEnPassant = false;
+    private ChessPosition movedTwice; //Holds the position of a pawn that just moved twice
+
     public ChessGame() {
         currentTurn = TeamColor.WHITE;
         board = new ChessBoard();
@@ -92,6 +95,21 @@ public class ChessGame {
                             new ChessPosition(row, 3), null));
                 }
             }
+
+            //Check for En Passant moves
+            if (piece.getPieceType() == ChessPiece.PieceType.PAWN && canEnPassant) {
+                int row = startPosition.getRow();
+                int col = startPosition.getColumn();
+                int dir = (piece.getTeamColor() == TeamColor.WHITE ? 1 : -1);
+                if (new ChessPosition(row, col - 1).equals(movedTwice)) {
+                    validMoves.add(new ChessMove(startPosition,
+                            new ChessPosition(row+dir, col-1), null));
+                }
+                if (new ChessPosition(row, col + 1).equals(movedTwice)) {
+                    validMoves.add(new ChessMove(startPosition,
+                            new ChessPosition(row+dir, col+1), null));
+                }
+            }
             return validMoves;
         }
     }
@@ -124,6 +142,8 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
+        canEnPassant = false;
+
         //Handle castling changes
         if (piece.getPieceType() == ChessPiece.PieceType.KING) {
             if (piece.getTeamColor() == TeamColor.WHITE) {
@@ -153,6 +173,14 @@ public class ChessGame {
             }
             board.addPiece(move.getEndPosition(), piece);
             board.removePiece(move.getStartPosition());
+
+            //Check if the move is en passant-able
+            if (piece.getPieceType() == ChessPiece.PieceType.PAWN) {
+                int distance = move.getStartPosition().getRow() - move.getEndPosition().getRow();
+                if (distance * distance > 1) {
+                    canEnPassant = true;
+                }
+            }
         } else {
             int newCol = move.getEndPosition().getColumn();
             int rookCol = (newCol == 3 ? 4 : 6);

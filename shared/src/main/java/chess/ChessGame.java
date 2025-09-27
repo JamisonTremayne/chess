@@ -142,8 +142,6 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
-        canEnPassant = false;
-
         //Handle castling changes
         if (piece.getPieceType() == ChessPiece.PieceType.KING) {
             if (piece.getTeamColor() == TeamColor.WHITE) {
@@ -171,6 +169,7 @@ public class ChessGame {
             if (move.getPromotionPiece() != null) {
                 piece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
             }
+            boolean setEnPassant = false;
             board.addPiece(move.getEndPosition(), piece);
             board.removePiece(move.getStartPosition());
 
@@ -179,7 +178,18 @@ public class ChessGame {
                 int distance = move.getStartPosition().getRow() - move.getEndPosition().getRow();
                 if (distance * distance > 1) {
                     canEnPassant = true;
+                    movedTwice = move.getEndPosition();
+                    setEnPassant = true;
+                } else if (canEnPassant) {
+                    int dir = (piece.getTeamColor() == TeamColor.WHITE ? 1 : -1);
+                    if (move.getEndPosition().getRow() == movedTwice.getRow() - dir &&
+                            move.getEndPosition().getColumn() == movedTwice.getColumn()) {
+                        board.removePiece(movedTwice);
+                    }
                 }
+            }
+            if (!setEnPassant) {
+                canEnPassant = false;
             }
         } else {
             int newCol = move.getEndPosition().getColumn();
@@ -197,7 +207,7 @@ public class ChessGame {
 
         }
 
-        currentTurn = (currentTurn == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
+        setTeamTurn((currentTurn == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE));
     }
 
     /**

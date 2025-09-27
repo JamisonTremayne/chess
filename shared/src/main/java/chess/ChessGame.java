@@ -104,6 +104,9 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece piece = board.getPiece(move.getStartPosition());
+        if (piece == null) {
+            throw new InvalidMoveException();
+        }
 
         HashSet<ChessMove> validMoves = (HashSet<ChessMove>) validMoves(move.getStartPosition());
 
@@ -302,6 +305,9 @@ public class ChessGame {
         int currentCol = 5;
         int row = (team == TeamColor.WHITE ? 1 : 8);
         ChessPosition oldPosition = new ChessPosition(row, 5);
+        if (!oldPosition.equals(getKingPosition(team))) {
+            return false;
+        }
         while (currentCol < 7 && currentCol > 2) {
             currentCol += dir;
             ChessPosition position = new ChessPosition(row, currentCol);

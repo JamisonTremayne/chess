@@ -60,7 +60,7 @@ public class ChessGame {
             HashSet<ChessMove> moves = (HashSet<ChessMove>) piece.pieceMoves(getBoard(), startPosition);
             HashSet<ChessMove> validMoves = new HashSet<>();
             for (ChessMove move : moves) {
-                if (!makeGhostMove(move)) {
+                if (!makeGhostMove(move, piece.getTeamColor())) {
                     validMoves.add(move);
                 }
             }
@@ -150,7 +150,7 @@ public class ChessGame {
     }
 
     //Returns true if a move WOULD make the player in check, and returns false otherwise.
-    private boolean makeGhostMove(ChessMove move) {
+    private boolean makeGhostMove(ChessMove move, TeamColor team) {
         //Make the move
         ChessPiece piece = board.getPiece(move.getStartPosition());
         ChessPiece enemyPiece = board.getPiece(move.getEndPosition());
@@ -158,7 +158,7 @@ public class ChessGame {
         board.removePiece(move.getStartPosition());
 
         //Check if the player is in check
-        boolean inCheck = isInCheck(currentTurn);
+        boolean inCheck = isInCheck(team);
 
         //Reverse the move
         board.addPiece(move.getStartPosition(), piece);

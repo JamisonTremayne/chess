@@ -81,6 +81,9 @@ public class ChessGame {
         }
 
         ChessPiece piece = board.getPiece(move.getStartPosition());
+        if (move.getPromotionPiece() != null) {
+            piece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
+        }
         board.addPiece(move.getEndPosition(), piece);
         board.removePiece(move.getStartPosition());
 

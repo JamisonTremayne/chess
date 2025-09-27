@@ -92,7 +92,8 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        HashSet<ChessMove> enemyMoves = getEnemyMoves(teamColor);
+        TeamColor enemyTeam = (teamColor == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
+        HashSet<ChessMove> enemyMoves = getTeamMoves(enemyTeam);
         ChessPosition kingPosition = getKingPosition(teamColor);
 
         for (ChessMove move : enemyMoves) {
@@ -110,7 +111,23 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if (!isInCheck(teamColor)) {
+            return false;
+        }
+
+        HashSet<ChessMove> validMoves = new HashSet<>();
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                ChessPosition position = new ChessPosition(i+1, j+1);
+                ChessPiece piece = board.getPiece(position);
+                if (piece != null && piece.getTeamColor() == teamColor) {
+                    validMoves.addAll(validMoves(position));
+                }
+            }
+        }
+
+        return validMoves.isEmpty();
+
     }
 
     /**
@@ -160,15 +177,14 @@ public class ChessGame {
         return inCheck;
     }
 
-    private HashSet<ChessMove> getEnemyMoves(TeamColor team) {
+    private HashSet<ChessMove> getTeamMoves(TeamColor team) {
         HashSet<ChessMove> enemyMoves = new HashSet<>();
-        TeamColor enemyTeam = (team == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
 
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 ChessPosition position = new ChessPosition(i+1, j+1);
                 ChessPiece piece = board.getPiece(position);
-                if (piece != null && piece.getTeamColor() == enemyTeam) {
+                if (piece != null && piece.getTeamColor() == team) {
                     enemyMoves.addAll(piece.pieceMoves(board, position));
                 }
             }

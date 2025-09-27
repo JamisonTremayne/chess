@@ -55,7 +55,14 @@ public class ChessGame {
         if (piece == null) {
             return null;
         } else {
-            return piece.pieceMoves(getBoard(), startPosition);
+            HashSet<ChessMove> moves = (HashSet<ChessMove>) piece.pieceMoves(getBoard(), startPosition);
+            HashSet<ChessMove> validMoves = new HashSet<>();
+            for (ChessMove move : moves) {
+                if (!makeGhostMove(move)) {
+                    validMoves.add(move);
+                }
+            }
+            return validMoves;
         }
     }
 
@@ -67,6 +74,9 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece piece = board.getPiece(move.getStartPosition());
+
+        
+
         board.addPiece(move.getEndPosition(), piece);
         board.removePiece(move.getStartPosition());
     }
@@ -128,6 +138,7 @@ public class ChessGame {
         return board;
     }
 
+    //Returns true if a move WOULD make the player in check, and returns false otherwise.
     private boolean makeGhostMove(ChessMove move) {
         //Make the move
         ChessPiece piece = board.getPiece(move.getStartPosition());

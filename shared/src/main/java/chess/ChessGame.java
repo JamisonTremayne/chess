@@ -79,7 +79,14 @@ public class ChessGame {
      */
     public boolean isInCheck(TeamColor teamColor) {
         HashSet<ChessMove> enemyMoves = getEnemyMoves(teamColor);
+        ChessPosition kingPosition = getKingPosition(teamColor);
 
+        for (ChessMove move : enemyMoves) {
+            if (move.getEndPosition().equals(kingPosition)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -153,5 +160,20 @@ public class ChessGame {
         }
 
         return enemyMoves;
+    }
+
+    private ChessPosition getKingPosition(TeamColor team) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                ChessPosition position = new ChessPosition(i+1, j+1);
+                ChessPiece piece = board.getPiece(position);
+                if (piece.getPieceType() == ChessPiece.PieceType.KING &&
+                piece.getTeamColor() == team) {
+                    return position;
+                }
+            }
+        }
+
+        return null;
     }
 }

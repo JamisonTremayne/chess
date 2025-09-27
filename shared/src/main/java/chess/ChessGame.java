@@ -18,6 +18,7 @@ public class ChessGame {
     public ChessGame() {
         currentTurn = TeamColor.WHITE;
         board = new ChessBoard();
+        board.resetBoard();
     }
 
     /**
@@ -54,7 +55,7 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece piece = board.getPiece(startPosition);
         if (piece == null) {
-            return null;
+            return new HashSet<ChessMove>();
         } else {
             HashSet<ChessMove> moves = (HashSet<ChessMove>) piece.pieceMoves(getBoard(), startPosition);
             HashSet<ChessMove> validMoves = new HashSet<>();
@@ -183,7 +184,7 @@ public class ChessGame {
             for (int j = 0; j < 8; j++) {
                 ChessPosition position = new ChessPosition(i+1, j+1);
                 ChessPiece piece = board.getPiece(position);
-                if (piece.getPieceType() == ChessPiece.PieceType.KING &&
+                if (piece != null && piece.getPieceType() == ChessPiece.PieceType.KING &&
                 piece.getTeamColor() == team) {
                     return position;
                 }
@@ -205,7 +206,7 @@ public class ChessGame {
             }
         }
 
-        return validMoves.isEmpty();
+        return !validMoves.isEmpty();
     }
 
     @Override

@@ -182,7 +182,7 @@ public class ChessGame {
                     setEnPassant = true;
                 } else if (canEnPassant) {
                     int dir = (piece.getTeamColor() == TeamColor.WHITE ? 1 : -1);
-                    if (move.getEndPosition().getRow() == movedTwice.getRow() - dir &&
+                    if (move.getEndPosition().getRow() == movedTwice.getRow() + dir &&
                             move.getEndPosition().getColumn() == movedTwice.getColumn()) {
                         board.removePiece(movedTwice);
                     }

@@ -5,6 +5,7 @@ import io.javalin.*;
 import io.javalin.http.Context;
 
 import java.util.Map;
+import java.util.UUID;
 
 public class Server {
 
@@ -26,12 +27,16 @@ public class Server {
         server.stop();
     }
 
+    public static String generateToken() {
+        return UUID.randomUUID().toString();
+    }
+
     private void register(Context ctx) {
         String requestJson = ctx.body();
         Gson serializer = new Gson();
         var req = serializer.fromJson(requestJson, Map.class);
 
-        var res = Map.of("username", req.get("username"), "authToken", "yzx");
+        var res = Map.of("username", req.get("username"), "authToken", generateToken());
         ctx.result(serializer.toJson(res));
     }
 }

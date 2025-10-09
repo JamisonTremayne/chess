@@ -39,4 +39,13 @@ public class Server {
         var res = Map.of("username", req.get("username"), "authToken", generateToken());
         ctx.result(serializer.toJson(res));
     }
+
+    private void login(Context ctx) {
+        String requestJson = ctx.body();
+        Gson serializer = new Gson();
+        var req = serializer.fromJson(requestJson, Map.class);
+
+        var res = Map.of("username", req.get("username"), "authToken", generateToken());
+        ctx.result(serializer.toJson(res));
+    }
 }

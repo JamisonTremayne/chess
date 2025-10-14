@@ -1,6 +1,8 @@
 package server;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccess;
+import dataaccess.MemoryDataAccess;
 import datamodel.*;
 import io.javalin.*;
 import io.javalin.http.Context;
@@ -15,12 +17,13 @@ public class Server {
     private final UserService userService;
 
     public Server() {
+        DataAccess dataAccess = new MemoryDataAccess();
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
         server.delete("db", ctx -> ctx.result("{}"));
         server.post("user", this::register);
 
-        userService = new UserService();
+        userService = new UserService(dataAccess);
     }
 
     public int run(int desiredPort) {
@@ -42,12 +45,17 @@ public class Server {
     }
 
     private void login(Context ctx) {
-        String requestJson = ctx.body();
         Gson serializer = new Gson();
-        var user = serializer.fromJson(requestJson, UserData.class);
+        try {
+            String requestJson = ctx.body();
+            var user = serializer.fromJson(requestJson, UserData.class);
 
-        AuthData authData = userService.register(user);
+            AuthData authData = userService.register(user);
 
-        ctx.result(serializer.toJson(authData));
+            ctx.result(serializer.toJson(authData));
+        } catch (Exception ex) {
+            String msg = String.format("{ \"message\"");
+            ctx.status(403).result(msg);
+        }
     }
 }

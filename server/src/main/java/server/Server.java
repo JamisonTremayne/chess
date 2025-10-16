@@ -9,7 +9,6 @@ import io.javalin.http.Context;
 import service.UserService;
 
 import java.util.Map;
-import java.util.UUID;
 
 public class Server {
 

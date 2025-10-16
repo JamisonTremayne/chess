@@ -27,7 +27,7 @@ public class UserService {
             throw new RequestException("Error: already taken", RequestException.Code.AlreadyExistsError);
         }
         dataAccess.createUser(user);
-        var authData = new AuthData(user.username(), generateToken());
+        AuthData authData = login(user);
         return authData;
     }
 

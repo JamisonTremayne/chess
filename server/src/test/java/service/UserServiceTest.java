@@ -86,8 +86,9 @@ class UserServiceTest {
     }
 
     @Test
-    void logoutNotLoggedIn() throws RequestException {
+    void logoutTwice() throws RequestException {
         AuthData authData = userService.register(goodUser);
+        userService.logout(authData.authToken());
         assertThrows(RequestException.class, () -> userService.logout(authData.authToken()));
     }
 

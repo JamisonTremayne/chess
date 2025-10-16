@@ -35,12 +35,16 @@ public class Server {
     }
 
     private void register(Context ctx) {
-        String requestJson = ctx.body();
         Gson serializer = new Gson();
-        var req = serializer.fromJson(requestJson, Map.class);
-
-        var res = Map.of("username", req.get("username"), "authToken", "z");
-        ctx.result(serializer.toJson(res));
+        try {
+            String requestJson = ctx.body();
+            var user = serializer.fromJson(requestJson, UserData.class);
+            AuthData authData = userService.register(user);
+            ctx.result(serializer.toJson(authData));
+        } catch (Exception ex) {
+            String msg = String.format("{ \"message\"");
+            ctx.status(403).result(msg);
+        }
     }
 
     private void login(Context ctx) {
@@ -50,7 +54,6 @@ public class Server {
             var user = serializer.fromJson(requestJson, UserData.class);
 
             AuthData authData = userService.register(user);
-
             ctx.result(serializer.toJson(authData));
         } catch (Exception ex) {
             String msg = String.format("{ \"message\"");

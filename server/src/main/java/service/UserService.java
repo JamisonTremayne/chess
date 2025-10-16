@@ -2,6 +2,7 @@ package service;
 
 import dataaccess.DataAccess;
 import datamodel.*;
+import exception.RequestException;
 
 import java.util.UUID;
 
@@ -13,12 +14,33 @@ public class UserService {
         this.dataAccess = dataAccess;
     }
 
-    public AuthData register(UserData user) throws Exception {
+    public void clear() {
+        dataAccess.clear();
+    }
+
+    public AuthData register(UserData user) throws RequestException {
+        if (user.username() == null || user.password() == null || user.email() == null) {
+            throw new RequestException("Error: bad request", RequestException.Code.BadRequestError);
+        }
         if (dataAccess.getUser(user.username()) != null) {
-            throw new Exception("already exists");
+            throw new RequestException("Error: already taken", RequestException.Code.AlreadyExistsError);
         }
         dataAccess.createUser(user);
         var authData = new AuthData(user.username(), generateToken());
+        return authData;
+    }
+
+    public AuthData login(UserData userInfo) throws RequestException {
+        UserData user = dataAccess.getUser(userInfo.username());
+        if (userInfo.username() == null || userInfo.password() == null) {
+            throw new RequestException("Error: bad request", RequestException.Code.BadRequestError);
+        }
+        if (user == null || !userInfo.password().equals(user.password())) {
+            throw new RequestException("Error: unauthorized", RequestException.Code.UnauthorizedError);
+        }
+        String authToken = generateToken();
+        AuthData authData = new AuthData(user.username(), authToken);
+        dataAccess.createAuth(authData);
         return authData;
     }
 

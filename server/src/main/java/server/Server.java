@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
 import datamodel.*;
+import exception.RequestException;
 import io.javalin.*;
 import io.javalin.http.Context;
 import service.UserService;
@@ -19,8 +20,9 @@ public class Server {
         DataAccess dataAccess = new MemoryDataAccess();
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
-        server.delete("db", ctx -> ctx.result("{}"));
+        server.delete("db", this::clear);
         server.post("user", this::register);
+        server.post("session", this::login);
 
         userService = new UserService(dataAccess);
     }
@@ -34,6 +36,11 @@ public class Server {
         server.stop();
     }
 
+    private void clear(Context ctx) {
+        userService.clear();
+        ctx.result("{}");
+    }
+
     private void register(Context ctx) {
         Gson serializer = new Gson();
         try {
@@ -41,9 +48,8 @@ public class Server {
             var user = serializer.fromJson(requestJson, UserData.class);
             AuthData authData = userService.register(user);
             ctx.result(serializer.toJson(authData));
-        } catch (Exception ex) {
-            String msg = String.format("{ \"message\"");
-            ctx.status(403).result(msg);
+        } catch (RequestException ex) {
+            ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
         }
     }
 
@@ -51,13 +57,11 @@ public class Server {
         Gson serializer = new Gson();
         try {
             String requestJson = ctx.body();
-            var user = serializer.fromJson(requestJson, UserData.class);
-
-            AuthData authData = userService.register(user);
+            var userInfo = serializer.fromJson(requestJson, UserData.class);
+            AuthData authData = userService.login(userInfo);
             ctx.result(serializer.toJson(authData));
-        } catch (Exception ex) {
-            String msg = String.format("{ \"message\"");
-            ctx.status(403).result(msg);
+        } catch (RequestException ex) {
+            ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
         }
     }
 }

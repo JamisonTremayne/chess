@@ -4,6 +4,8 @@ import dataaccess.*;
 import datamodel.*;
 import exception.RequestException;
 import org.junit.jupiter.api.Test;
+import request.LoginRequest;
+import request.LogoutRequest;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -56,8 +58,7 @@ class UserServiceTest {
 
     @Test
     void loginSuccess() throws RequestException {
-        userService.register(goodUser);
-        AuthData authData = userService.login(goodUser);
+        AuthData authData = userService.register(goodUser);
         assertEquals(authData.username(), goodUser.username());
         assertNotNull(authData.authToken());
     }
@@ -65,36 +66,36 @@ class UserServiceTest {
     @Test
     void loginBadRequest() throws RequestException {
         userService.register(goodUser);
-        assertThrows(RequestException.class, () -> userService.login(new UserData(null, null, null)));
+        assertThrows(RequestException.class, () -> userService.login(new LoginRequest(null, null)));
     }
 
     @Test
     void loginUnauthorized() throws RequestException {
         userService.register(goodUser);
-        assertThrows(RequestException.class, () -> userService.login(new UserData("jill", "home", null)));
-        assertThrows(RequestException.class, () -> userService.login(new UserData("joe", "idk", null)));
+        assertThrows(RequestException.class, () -> userService.login(new LoginRequest("jill", "home")));
+        assertThrows(RequestException.class, () -> userService.login(new LoginRequest("joe", "idk")));
     }
 
     @Test
     void logoutSuccess() throws RequestException {
-        userService.register(goodUser);
-        AuthData loginResult = userService.login(goodUser);
-        userService.logout(loginResult.authToken());
+        AuthData loginResult = userService.register(goodUser);
+        userService.logout(new LogoutRequest(loginResult.authToken()));
         assertNull(db.getAuth(loginResult.authToken()));
     }
 
     @Test
     void logoutTwice() throws RequestException {
         AuthData authData = userService.register(goodUser);
-        userService.logout(authData.authToken());
-        assertThrows(RequestException.class, () -> userService.logout(authData.authToken()));
+        LogoutRequest logoutRequest = new LogoutRequest(authData.authToken());
+        userService.logout(logoutRequest);
+        assertThrows(RequestException.class, () -> userService.logout(logoutRequest));
     }
 
     @Test
     void logoutWrongToken() throws RequestException {
-        userService.register(goodUser);
-        AuthData loginResult = userService.login(goodUser);
-        assertThrows(RequestException.class, () -> userService.logout(loginResult.authToken() + "a"));
+        AuthData loginResult = userService.register(goodUser);
+        LogoutRequest logoutRequest = new LogoutRequest(loginResult.authToken() + "a");
+        assertThrows(RequestException.class, () -> userService.logout(logoutRequest));
     }
 
     private boolean emptyDatabase() {

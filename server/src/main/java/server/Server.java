@@ -7,6 +7,9 @@ import datamodel.*;
 import exception.RequestException;
 import io.javalin.*;
 import io.javalin.http.Context;
+import request.CreateGameRequest;
+import request.LoginRequest;
+import request.LogoutRequest;
 import service.*;
 
 public class Server {
@@ -59,8 +62,8 @@ public class Server {
         Gson serializer = new Gson();
         try {
             String requestJson = ctx.body();
-            var userInfo = serializer.fromJson(requestJson, UserData.class);
-            AuthData authData = userService.login(userInfo);
+            LoginRequest loginRequest = serializer.fromJson(requestJson, LoginRequest.class);
+            AuthData authData = userService.login(loginRequest);
             ctx.result(serializer.toJson(authData));
         } catch (RequestException ex) {
             ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
@@ -71,8 +74,8 @@ public class Server {
         Gson serializer = new Gson();
         try {
             String requestJson = ctx.header("authorization");
-            String authToken = serializer.fromJson(requestJson, String.class);
-            userService.logout(authToken);
+            LogoutRequest logoutRequest = serializer.fromJson(requestJson, LogoutRequest.class);
+            userService.logout(logoutRequest);
             ctx.result("{}");
         } catch (RequestException ex) {
             ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
@@ -84,9 +87,8 @@ public class Server {
         try {
             String jsonBody = ctx.body();
             String jsonHead = ctx.header("authorization");
-            String gameName = serializer.fromJson(jsonBody, String.class);
-            String authToken = serializer.fromJson(jsonHead, String.class);
-            int gameID = gameService.createGame(authToken, gameName);
+            CreateGameRequest createGameRequest = serializer.fromJson(jsonBody + jsonHead, CreateGameRequest.class);
+            int gameID = gameService.createGame(createGameRequest);
             ctx.result(serializer.toJson(gameID));
         } catch (RequestException ex) {
             ctx.status(ex.toHttpStatusCode()).result(ex.toJson());

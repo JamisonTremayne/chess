@@ -4,6 +4,7 @@ import chess.ChessGame;
 import dataaccess.*;
 import datamodel.*;
 import exception.RequestException;
+import request.CreateGameRequest;
 
 public class GameService {
 
@@ -14,11 +15,11 @@ public class GameService {
         this.dataAccess = dataAccess;
     }
 
-    public int createGame(String authToken, String gameName) throws RequestException {
-        if (authToken == null || gameName == null) {
+    public int createGame(CreateGameRequest createGameRequest) throws RequestException {
+        if (createGameRequest.authToken() == null || createGameRequest.gameName() == null) {
             throw new RequestException("Error: bad request", RequestException.Code.BadRequestError);
         }
-        AuthData authData = dataAccess.getAuth(authToken);
+        AuthData authData = dataAccess.getAuth(createGameRequest.authToken());
         if (authData == null) {
             throw new RequestException("Error: unauthorized", RequestException.Code.UnauthorizedError);
         }
@@ -26,7 +27,7 @@ public class GameService {
         if (dataAccess.getGame(gameID) != null) {
             throw new RequestException("Error: bad request", RequestException.Code.BadRequestError);
         }
-        GameData newGame = new GameData(gameID, null, null, gameName, new ChessGame());
+        GameData newGame = new GameData(gameID, null, null, createGameRequest.gameName(), new ChessGame());
         dataAccess.createGame(newGame);
         return gameID;
     }

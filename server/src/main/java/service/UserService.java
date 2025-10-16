@@ -3,6 +3,7 @@ package service;
 import dataaccess.DataAccess;
 import datamodel.*;
 import exception.RequestException;
+import request.*;
 
 import java.util.UUID;
 
@@ -26,15 +27,16 @@ public class UserService {
             throw new RequestException("Error: already taken", RequestException.Code.AlreadyExistsError);
         }
         dataAccess.createUser(user);
-        return login(user);
+        LoginRequest loginRequest = new LoginRequest(user.username(), user.password());
+        return login(loginRequest);
     }
 
-    public AuthData login(UserData userInfo) throws RequestException {
-        UserData user = dataAccess.getUser(userInfo.username());
-        if (userInfo.username() == null || userInfo.password() == null) {
+    public AuthData login(LoginRequest loginRequest) throws RequestException {
+        UserData user = dataAccess.getUser(loginRequest.username());
+        if (loginRequest.username() == null || loginRequest.password() == null) {
             throw new RequestException("Error: bad request", RequestException.Code.BadRequestError);
         }
-        if (user == null || !userInfo.password().equals(user.password())) {
+        if (user == null || !loginRequest.password().equals(user.password())) {
             throw new RequestException("Error: unauthorized", RequestException.Code.UnauthorizedError);
         }
         String authToken = generateToken();
@@ -43,8 +45,8 @@ public class UserService {
         return authData;
     }
 
-    public void logout(String authToken) throws RequestException {
-        AuthData authData = dataAccess.getAuth(authToken);
+    public void logout(LogoutRequest logoutRequest) throws RequestException {
+        AuthData authData = dataAccess.getAuth(logoutRequest.authToken());
         if (authData == null) {
             throw new RequestException("Error: unauthorized", RequestException.Code.UnauthorizedError);
         }

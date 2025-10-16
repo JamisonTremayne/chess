@@ -1,10 +1,8 @@
 package service;
 
 import dataaccess.*;
-import datamodel.AuthData;
-import datamodel.UserData;
+import datamodel.*;
 import exception.RequestException;
-import org.eclipse.jetty.server.Request;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

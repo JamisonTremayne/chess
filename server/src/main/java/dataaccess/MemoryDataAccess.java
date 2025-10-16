@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class MemoryDataAccess implements DataAccess {
     private final HashMap<String, UserData> users = new HashMap<>();
-    private final HashMap<String, GameData> games = new HashMap<>();
+    private final HashMap<Integer, GameData> games = new HashMap<>();
     private final HashMap<String, AuthData> auths = new HashMap<>();
     @Override
     public void clear() {
@@ -24,6 +24,16 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public UserData getUser(String username) {
         return users.get(username);
+    }
+
+    @Override
+    public void createGame(GameData gameData) {
+        games.put(gameData.gameID(), gameData);
+    }
+
+    @Override
+    public GameData getGame(Integer gameID) {
+        return games.get(gameID);
     }
 
     @Override

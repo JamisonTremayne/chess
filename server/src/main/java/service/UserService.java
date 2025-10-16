@@ -3,7 +3,6 @@ package service;
 import dataaccess.DataAccess;
 import datamodel.*;
 import exception.RequestException;
-import org.eclipse.jetty.server.Request;
 
 import java.util.UUID;
 
@@ -27,8 +26,7 @@ public class UserService {
             throw new RequestException("Error: already taken", RequestException.Code.AlreadyExistsError);
         }
         dataAccess.createUser(user);
-        AuthData authData = login(user);
-        return authData;
+        return login(user);
     }
 
     public AuthData login(UserData userInfo) throws RequestException {

@@ -23,6 +23,7 @@ public class Server {
         server.delete("db", this::clear);
         server.post("user", this::register);
         server.post("session", this::login);
+        server.delete("session", this::logout);
 
         userService = new UserService(dataAccess);
     }
@@ -60,6 +61,18 @@ public class Server {
             var userInfo = serializer.fromJson(requestJson, UserData.class);
             AuthData authData = userService.login(userInfo);
             ctx.result(serializer.toJson(authData));
+        } catch (RequestException ex) {
+            ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
+        }
+    }
+
+    private void logout(Context ctx) {
+        Gson serializer = new Gson();
+        try {
+            String requestJson = ctx.header("authorization");
+            String authToken = serializer.fromJson(requestJson, String.class);
+            userService.logout(authToken);
+            ctx.result("{}");
         } catch (RequestException ex) {
             ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
         }

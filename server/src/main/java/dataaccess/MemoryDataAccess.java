@@ -13,7 +13,7 @@ public class MemoryDataAccess implements DataAccess {
     public void clear() {
         users.clear();
         games.clear();
-        auths.clear();
+//        auths.clear();
     }
 
     @Override
@@ -34,6 +34,11 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public AuthData getAuth(String authToken) {
         return auths.get(authToken);
+    }
+
+    @Override
+    public void deleteAuth(AuthData authData) {
+        auths.remove(authData.authToken());
     }
 
 

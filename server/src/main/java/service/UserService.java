@@ -3,6 +3,7 @@ package service;
 import dataaccess.DataAccess;
 import datamodel.*;
 import exception.RequestException;
+import org.eclipse.jetty.server.Request;
 
 import java.util.UUID;
 
@@ -42,6 +43,14 @@ public class UserService {
         AuthData authData = new AuthData(user.username(), authToken);
         dataAccess.createAuth(authData);
         return authData;
+    }
+
+    public void logout(String authToken) throws RequestException {
+        AuthData authData = dataAccess.getAuth(authToken);
+        if (authData == null) {
+            throw new RequestException("Error: unauthorized", RequestException.Code.UnauthorizedError);
+        }
+        dataAccess.deleteAuth(authData);
     }
 
 

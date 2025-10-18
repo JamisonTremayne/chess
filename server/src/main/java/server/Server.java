@@ -8,6 +8,7 @@ import exception.RequestException;
 import io.javalin.*;
 import io.javalin.http.Context;
 import request.CreateGameRequest;
+import request.CreateGameRequestBody;
 import request.LoginRequest;
 import request.LogoutRequest;
 import service.*;
@@ -23,10 +24,10 @@ public class Server {
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
         server.delete("db", this::clear);
-        server.post("user", this::register);
-        server.post("session", this::login);
-        server.delete("session", this::logout);
-        server.post("game", this::createGame);
+        server.post("user", this::registerHandler);
+        server.post("session", this::loginHandler);
+        server.delete("session", this::logoutHandler);
+        server.post("game", this::createGameHandler);
 
         userService = new UserService(dataAccess);
         gameService = new GameService(dataAccess);
@@ -46,7 +47,7 @@ public class Server {
         ctx.result("{}");
     }
 
-    private void register(Context ctx) {
+    private void registerHandler(Context ctx) {
         Gson serializer = new Gson();
         try {
             String requestJson = ctx.body();
@@ -58,7 +59,7 @@ public class Server {
         }
     }
 
-    private void login(Context ctx) {
+    private void loginHandler(Context ctx) {
         Gson serializer = new Gson();
         try {
             String requestJson = ctx.body();
@@ -70,7 +71,7 @@ public class Server {
         }
     }
 
-    private void logout(Context ctx) {
+    private void logoutHandler(Context ctx) {
         Gson serializer = new Gson();
         try {
             String requestJson = ctx.header("authorization");
@@ -82,13 +83,14 @@ public class Server {
         }
     }
 
-    private void createGame(Context ctx) {
+    private void createGameHandler(Context ctx) {
         Gson serializer = new Gson();
         try {
             String jsonBody = ctx.body();
-            String jsonHead = ctx.header("authorization");
-            CreateGameRequest createGameRequest = serializer.fromJson(jsonBody + jsonHead, CreateGameRequest.class);
-            int gameID = gameService.createGame(createGameRequest);
+            var tempBody = serializer.fromJson(jsonBody, CreateGameRequestBody.class);
+            String authToken = ctx.header("authorization");
+            CreateGameRequest createGameRequest = new CreateGameRequest(tempBody.gameName(), authToken);
+            Integer gameID = gameService.createGame(createGameRequest);
             ctx.result(serializer.toJson(gameID));
         } catch (RequestException ex) {
             ctx.status(ex.toHttpStatusCode()).result(ex.toJson());

@@ -9,7 +9,7 @@ import request.CreateGameRequest;
 public class GameService {
 
     private final DataAccess dataAccess;
-    private Integer gameCounter = 0;
+    private Integer gameCounter = 1000;
 
     public GameService(DataAccess dataAccess) {
         this.dataAccess = dataAccess;

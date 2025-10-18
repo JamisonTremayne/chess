@@ -4,7 +4,8 @@ import chess.ChessGame;
 import dataaccess.*;
 import datamodel.*;
 import exception.RequestException;
-import request.CreateGameRequest;
+import request.*;
+import response.*;
 
 public class GameService {
 
@@ -15,7 +16,7 @@ public class GameService {
         this.dataAccess = dataAccess;
     }
 
-    public int createGame(CreateGameRequest createGameRequest) throws RequestException {
+    public CreateGameResponse createGame(CreateGameRequest createGameRequest) throws RequestException {
         if (createGameRequest.authToken() == null || createGameRequest.gameName() == null) {
             throw new RequestException("Error: bad request", RequestException.Code.BadRequestError);
         }
@@ -29,6 +30,6 @@ public class GameService {
         }
         GameData newGame = new GameData(gameID, null, null, createGameRequest.gameName(), new ChessGame());
         dataAccess.createGame(newGame);
-        return gameID;
+        return new CreateGameResponse(gameID);
     }
 }

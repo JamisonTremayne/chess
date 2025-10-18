@@ -4,8 +4,8 @@ import dataaccess.*;
 import datamodel.*;
 import exception.RequestException;
 import org.junit.jupiter.api.Test;
-import request.LoginRequest;
-import request.LogoutRequest;
+import request.*;
+import response.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,7 +26,7 @@ class UserServiceTest {
 
     @Test
     void registerSuccess() throws Exception {
-        AuthData authData = userService.register(goodUser);
+        LoginResponse authData = userService.register(goodUser);
         assertNotNull(authData);
         assertEquals(goodUser.username(), authData.username());
         assertFalse(authData.authToken().isEmpty());
@@ -58,7 +58,7 @@ class UserServiceTest {
 
     @Test
     void loginSuccess() throws RequestException {
-        AuthData authData = userService.register(goodUser);
+        LoginResponse authData = userService.register(goodUser);
         assertEquals(authData.username(), goodUser.username());
         assertNotNull(authData.authToken());
     }
@@ -78,14 +78,14 @@ class UserServiceTest {
 
     @Test
     void logoutSuccess() throws RequestException {
-        AuthData loginResult = userService.register(goodUser);
+        LoginResponse loginResult = userService.register(goodUser);
         userService.logout(new LogoutRequest(loginResult.authToken()));
         assertNull(db.getAuth(loginResult.authToken()));
     }
 
     @Test
     void logoutTwice() throws RequestException {
-        AuthData authData = userService.register(goodUser);
+        LoginResponse authData = userService.register(goodUser);
         LogoutRequest logoutRequest = new LogoutRequest(authData.authToken());
         userService.logout(logoutRequest);
         assertThrows(RequestException.class, () -> userService.logout(logoutRequest));
@@ -93,7 +93,7 @@ class UserServiceTest {
 
     @Test
     void logoutWrongToken() throws RequestException {
-        AuthData loginResult = userService.register(goodUser);
+        LoginResponse loginResult = userService.register(goodUser);
         LogoutRequest logoutRequest = new LogoutRequest(loginResult.authToken() + "a");
         assertThrows(RequestException.class, () -> userService.logout(logoutRequest));
     }

@@ -1,16 +1,13 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.DataAccess;
-import dataaccess.MemoryDataAccess;
+import dataaccess.*;
 import datamodel.*;
 import exception.RequestException;
 import io.javalin.*;
 import io.javalin.http.Context;
-import request.CreateGameRequest;
-import request.CreateGameRequestBody;
-import request.LoginRequest;
-import request.LogoutRequest;
+import request.*;
+import response.*;
 import service.*;
 
 public class Server {
@@ -52,8 +49,8 @@ public class Server {
         try {
             String requestJson = ctx.body();
             var user = serializer.fromJson(requestJson, UserData.class);
-            AuthData authData = userService.register(user);
-            ctx.result(serializer.toJson(authData));
+            LoginResponse loginResponse = userService.register(user);
+            ctx.result(serializer.toJson(loginResponse));
         } catch (RequestException ex) {
             ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
         }
@@ -64,8 +61,8 @@ public class Server {
         try {
             String requestJson = ctx.body();
             LoginRequest loginRequest = serializer.fromJson(requestJson, LoginRequest.class);
-            AuthData authData = userService.login(loginRequest);
-            ctx.result(serializer.toJson(authData));
+            LoginResponse loginResponse = userService.login(loginRequest);
+            ctx.result(serializer.toJson(loginResponse));
         } catch (RequestException ex) {
             ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
         }
@@ -90,8 +87,8 @@ public class Server {
             var tempBody = serializer.fromJson(jsonBody, CreateGameRequestBody.class);
             String authToken = ctx.header("authorization");
             CreateGameRequest createGameRequest = new CreateGameRequest(tempBody.gameName(), authToken);
-            Integer gameID = gameService.createGame(createGameRequest);
-            ctx.result(serializer.toJson(gameID));
+            CreateGameResponse response = gameService.createGame(createGameRequest);
+            ctx.result(serializer.toJson(response));
         } catch (RequestException ex) {
             ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
         }

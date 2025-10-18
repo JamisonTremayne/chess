@@ -4,6 +4,7 @@ import dataaccess.DataAccess;
 import datamodel.*;
 import exception.RequestException;
 import request.*;
+import response.*;
 
 import java.util.UUID;
 
@@ -19,7 +20,7 @@ public class UserService {
         dataAccess.clear();
     }
 
-    public AuthData register(UserData user) throws RequestException {
+    public LoginResponse register(UserData user) throws RequestException {
         if (user.username() == null || user.password() == null || user.email() == null) {
             throw new RequestException("Error: bad request", RequestException.Code.BadRequestError);
         }
@@ -28,10 +29,11 @@ public class UserService {
         }
         dataAccess.createUser(user);
         LoginRequest loginRequest = new LoginRequest(user.username(), user.password());
+
         return login(loginRequest);
     }
 
-    public AuthData login(LoginRequest loginRequest) throws RequestException {
+    public LoginResponse login(LoginRequest loginRequest) throws RequestException {
         UserData user = dataAccess.getUser(loginRequest.username());
         if (loginRequest.username() == null || loginRequest.password() == null) {
             throw new RequestException("Error: bad request", RequestException.Code.BadRequestError);
@@ -42,7 +44,7 @@ public class UserService {
         String authToken = generateToken();
         AuthData authData = new AuthData(user.username(), authToken);
         dataAccess.createAuth(authData);
-        return authData;
+        return new LoginResponse(authData.username(), authData.authToken());
     }
 
     public void logout(LogoutRequest logoutRequest) throws RequestException {

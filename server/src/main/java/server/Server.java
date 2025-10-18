@@ -6,6 +6,7 @@ import datamodel.*;
 import exception.RequestException;
 import io.javalin.*;
 import io.javalin.http.Context;
+import org.jetbrains.annotations.NotNull;
 import request.*;
 import response.*;
 import service.*;
@@ -25,6 +26,7 @@ public class Server {
         server.post("session", this::loginHandler);
         server.delete("session", this::logoutHandler);
         server.post("game", this::createGameHandler);
+        server.put("game", this::joinGameHandler);
 
         userService = new UserService(dataAccess);
         gameService = new GameService(dataAccess);
@@ -69,10 +71,9 @@ public class Server {
     }
 
     private void logoutHandler(Context ctx) {
-        Gson serializer = new Gson();
         try {
-            String requestJson = ctx.header("authorization");
-            LogoutRequest logoutRequest = serializer.fromJson(requestJson, LogoutRequest.class);
+            String authToken = ctx.header("authorization");
+            LogoutRequest logoutRequest = new LogoutRequest(authToken);
             userService.logout(logoutRequest);
             ctx.result("{}");
         } catch (RequestException ex) {
@@ -89,6 +90,20 @@ public class Server {
             CreateGameRequest createGameRequest = new CreateGameRequest(tempBody.gameName(), authToken);
             CreateGameResponse response = gameService.createGame(createGameRequest);
             ctx.result(serializer.toJson(response));
+        } catch (RequestException ex) {
+            ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
+        }
+    }
+
+    private void joinGameHandler(Context ctx) {
+        Gson serializer = new Gson();
+        try {
+            String jsonBody = ctx.body();
+            var tempBody = serializer.fromJson(jsonBody, JoinGameRequestBody.class);
+            String authToken = ctx.header("authorization");
+            JoinGameRequest request = new JoinGameRequest(tempBody.playerColor(), tempBody.gameID(), authToken);
+            gameService.joinGame(request);
+            ctx.result("{}");
         } catch (RequestException ex) {
             ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
         }

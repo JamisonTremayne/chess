@@ -10,7 +10,7 @@ public class RequestException extends Exception {
     public enum Code {
         BadRequestError,
         UnauthorizedError,
-        AlreadyExistsError,
+        AlreadyTakenError,
         ServerError
     }
 
@@ -41,7 +41,7 @@ public class RequestException extends Exception {
             case 500 -> Code.ServerError;
             case 400 -> Code.BadRequestError;
             case 401 -> Code.UnauthorizedError;
-            case 403 -> Code.AlreadyExistsError;
+            case 403 -> Code.AlreadyTakenError;
             default -> throw new IllegalArgumentException("Unknown HTTP status code: " + httpStatusCode);
         };
     }
@@ -51,7 +51,7 @@ public class RequestException extends Exception {
             case ServerError -> 500;
             case BadRequestError -> 400;
             case UnauthorizedError -> 401;
-            case AlreadyExistsError -> 403;
+            case AlreadyTakenError -> 403;
         };
     }
 }

@@ -55,4 +55,48 @@ class GameServiceTest {
         CreateGameRequest createGameRequest = new CreateGameRequest("my_game", authData.authToken() + "b");
         assertThrows(RequestException.class, () -> gameService.createGame(createGameRequest));
     }
+
+    @Test
+    void joinGameSuccess() throws RequestException {
+        LoginResponse authData = userService.register(goodUser);
+        String gameName = "my_game";
+        CreateGameRequest createGameRequest = new CreateGameRequest(gameName, authData.authToken());
+        CreateGameResponse response = gameService.createGame(createGameRequest);
+        JoinGameRequest joinGameRequest = new JoinGameRequest(ChessGame.TeamColor.WHITE, response.gameID(), authData.authToken());
+        gameService.joinGame(joinGameRequest);
+        var newGame = db.getGame(response.gameID());
+        assertEquals(newGame.whiteUsername(), goodUser.username());
+        assertNull(newGame.blackUsername());
+    }
+
+    @Test
+    void joinGameBadRequest() throws RequestException {
+        LoginResponse authData = userService.register(goodUser);
+        String gameName = "my_game";
+        CreateGameRequest createGameRequest = new CreateGameRequest(gameName, authData.authToken());
+        CreateGameResponse response = gameService.createGame(createGameRequest);
+        JoinGameRequest joinGameRequest = new JoinGameRequest(null, response.gameID(), authData.authToken());
+        assertThrows(RequestException.class, () -> gameService.joinGame(joinGameRequest));
+    }
+
+    @Test
+    void joinGameUnauthorized() throws RequestException {
+        LoginResponse authData = userService.register(goodUser);
+        String gameName = "my_game";
+        CreateGameRequest createGameRequest = new CreateGameRequest(gameName, authData.authToken());
+        CreateGameResponse response = gameService.createGame(createGameRequest);
+        JoinGameRequest joinGameRequest = new JoinGameRequest(ChessGame.TeamColor.WHITE, response.gameID(), authData.authToken() + "a");
+        assertThrows(RequestException.class, () -> gameService.joinGame(joinGameRequest));
+    }
+
+    @Test
+    void joinGameAlreadyTaken() throws RequestException {
+        LoginResponse authData = userService.register(goodUser);
+        String gameName = "my_game";
+        CreateGameRequest createGameRequest = new CreateGameRequest(gameName, authData.authToken());
+        CreateGameResponse response = gameService.createGame(createGameRequest);
+        JoinGameRequest joinGameRequest = new JoinGameRequest(ChessGame.TeamColor.WHITE, response.gameID(), authData.authToken());
+        gameService.joinGame(joinGameRequest);
+        assertThrows(RequestException.class, () -> gameService.joinGame(joinGameRequest));
+    }
 }

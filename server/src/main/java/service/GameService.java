@@ -7,6 +7,8 @@ import exception.RequestException;
 import request.*;
 import response.*;
 
+import java.util.ArrayList;
+
 public class GameService {
 
     private final DataAccess dataAccess;
@@ -21,6 +23,15 @@ public class GameService {
         unauthorizedException = new RequestException("Error: unauthorized", RequestException.Code.UnauthorizedError);
         alreadyTakenException = new RequestException("Error: already taken", RequestException.Code.AlreadyTakenError);
     }
+
+    public ListGamesResponse listGames(ListGamesRequest request) throws RequestException {
+        if (request.authToken() == null || dataAccess.getAuth(request.authToken()) == null) {
+            throw unauthorizedException;
+        }
+        ArrayList<GameData> games = dataAccess.listGames();
+        return new ListGamesResponse(games);
+    }
+
 
     public CreateGameResponse createGame(CreateGameRequest createGameRequest) throws RequestException {
         if (createGameRequest.authToken() == null || createGameRequest.gameName() == null) {

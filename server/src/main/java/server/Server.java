@@ -25,6 +25,7 @@ public class Server {
         server.post("user", this::registerHandler);
         server.post("session", this::loginHandler);
         server.delete("session", this::logoutHandler);
+        server.get("game", this::listGamesHandler);
         server.post("game", this::createGameHandler);
         server.put("game", this::joinGameHandler);
 
@@ -76,6 +77,18 @@ public class Server {
             LogoutRequest logoutRequest = new LogoutRequest(authToken);
             userService.logout(logoutRequest);
             ctx.result("{}");
+        } catch (RequestException ex) {
+            ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
+        }
+    }
+
+    private void listGamesHandler(Context ctx) {
+        Gson serializer = new Gson();
+        try {
+            String authToken = ctx.header("authorization");
+            ListGamesRequest request = new ListGamesRequest(authToken);
+            ListGamesResponse response = gameService.listGames(request);
+            ctx.result(serializer.toJson(response));
         } catch (RequestException ex) {
             ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
         }

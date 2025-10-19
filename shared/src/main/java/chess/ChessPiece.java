@@ -128,11 +128,11 @@ public class ChessPiece {
             while (validMove) {
                 currentRow += rowD;
                 currentCol += colD;
-                ChessPosition newPosition = new ChessPosition(currentRow, currentCol);
-                validMove = isMoveValid(board, newPosition, true);
+                ChessPosition bishopPosition = new ChessPosition(currentRow, currentCol);
+                validMove = isMoveValid(board, bishopPosition, true);
                 if (validMove) {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
-                    validMove = !hasEnemy(board, newPosition);
+                    moves.add(new ChessMove(myPosition, bishopPosition, null));
+                    validMove = !hasEnemy(board, bishopPosition);
                 }
             }
         }
@@ -172,11 +172,11 @@ public class ChessPiece {
             while (validMove) {
                 currentRow += rowD;
                 currentCol += colD;
-                ChessPosition newPosition = new ChessPosition(currentRow, currentCol);
-                validMove = isMoveValid(board, newPosition, true);
+                ChessPosition rookPosition = new ChessPosition(currentRow, currentCol);
+                validMove = isMoveValid(board, rookPosition, true);
                 if (validMove) {
-                    moves.add(new ChessMove(myPosition, newPosition, null));
-                    validMove = !hasEnemy(board, newPosition);
+                    moves.add(new ChessMove(myPosition, rookPosition, null));
+                    validMove = !hasEnemy(board, rookPosition);
                 }
             }
         }

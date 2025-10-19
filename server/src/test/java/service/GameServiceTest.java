@@ -32,14 +32,14 @@ class GameServiceTest {
         LoginResponse authData = userService.register(goodUser);
         String gameName = "my_game";
         CreateGameRequest createGameRequest = new CreateGameRequest(gameName, authData.authToken());
-        CreateGameResponse gameID_01 = gameService.createGame(createGameRequest);
-        CreateGameResponse gameID_02 = gameService.createGame(createGameRequest);
-        var game_01 = new GameData(gameID_01.gameID(), null, null, gameName, new ChessGame());
-        var game_02 = new GameData(gameID_02.gameID(), null, null, gameName, new ChessGame());
-        assertEquals(db.getGame(gameID_01.gameID()), game_01);
-        assertEquals(db.getGame(gameID_02.gameID()), game_02);
-        assertEquals(db.getGame(gameID_01.gameID()).gameName(), db.getGame(gameID_02.gameID()).gameName());
-        assertNotEquals(gameID_01.gameID(), gameID_02.gameID());
+        CreateGameResponse gameID01 = gameService.createGame(createGameRequest);
+        CreateGameResponse gameID02 = gameService.createGame(createGameRequest);
+        var game01 = new GameData(gameID01.gameID(), null, null, gameName, new ChessGame());
+        var game02 = new GameData(gameID02.gameID(), null, null, gameName, new ChessGame());
+        assertEquals(db.getGame(gameID01.gameID()), game01);
+        assertEquals(db.getGame(gameID02.gameID()), game02);
+        assertEquals(db.getGame(gameID01.gameID()).gameName(), db.getGame(gameID02.gameID()).gameName());
+        assertNotEquals(gameID01.gameID(), gameID02.gameID());
     }
 
     @Test

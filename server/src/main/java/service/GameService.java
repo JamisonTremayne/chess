@@ -13,20 +13,20 @@ public class GameService {
 
     private final DataAccess dataAccess;
     private Integer gameCounter = 1000;
-    private final RequestException badRequestException;
-    private final RequestException unauthorizedException;
-    private final RequestException alreadyTakenException;
+    private final RequestException gameBadRequestEx;
+    private final RequestException gameUnauthorizedEx;
+    private final RequestException gameAlreadyTakenEx;
 
     public GameService(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
-        badRequestException = new RequestException("Error: bad request", RequestException.Code.BadRequestError);
-        unauthorizedException = new RequestException("Error: unauthorized", RequestException.Code.UnauthorizedError);
-        alreadyTakenException = new RequestException("Error: already taken", RequestException.Code.AlreadyTakenError);
+        gameBadRequestEx = new RequestException("Error: bad request", RequestException.Code.BadRequestError);
+        gameUnauthorizedEx = new RequestException("Error: unauthorized", RequestException.Code.UnauthorizedError);
+        gameAlreadyTakenEx = new RequestException("Error: already taken", RequestException.Code.AlreadyTakenError);
     }
 
     public ListGamesResponse listGames(ListGamesRequest request) throws RequestException {
         if (request.authToken() == null || dataAccess.getAuth(request.authToken()) == null) {
-            throw unauthorizedException;
+            throw gameUnauthorizedEx;
         }
         ArrayList<GameData> games = dataAccess.listGames();
         return new ListGamesResponse(games);
@@ -35,15 +35,15 @@ public class GameService {
 
     public CreateGameResponse createGame(CreateGameRequest createGameRequest) throws RequestException {
         if (createGameRequest.authToken() == null || createGameRequest.gameName() == null) {
-            throw badRequestException;
+            throw gameBadRequestEx;
         }
         AuthData authData = dataAccess.getAuth(createGameRequest.authToken());
         if (authData == null) {
-            throw unauthorizedException;
+            throw gameUnauthorizedEx;
         }
         int gameID = gameCounter++;
         if (dataAccess.getGame(gameID) != null) {
-            throw badRequestException;
+            throw gameBadRequestEx;
         }
         GameData newGame = new GameData(gameID, null, null, createGameRequest.gameName(), new ChessGame());
         dataAccess.createGame(newGame);
@@ -52,27 +52,27 @@ public class GameService {
 
     public void joinGame(JoinGameRequest request) throws RequestException {
         if (request.playerColor() == null || request.authToken() == null) {
-            throw badRequestException;
+            throw gameBadRequestEx;
         }
         AuthData authData = dataAccess.getAuth(request.authToken());
         if (authData == null) {
-            throw unauthorizedException;
+            throw gameUnauthorizedEx;
         }
         GameData game = dataAccess.getGame(request.gameID());
         if (game == null) {
-            throw badRequestException;
+            throw gameBadRequestEx;
         }
         String whiteUser = game.whiteUsername();
         String blackUser = game.blackUsername();
         if (request.playerColor() == ChessGame.TeamColor.WHITE) {
             if (whiteUser != null) {
-                throw alreadyTakenException;
+                throw gameAlreadyTakenEx;
             } else {
                 whiteUser = authData.username();
             }
         } else {
             if (blackUser != null) {
-                throw alreadyTakenException;
+                throw gameAlreadyTakenEx;
             } else {
                 blackUser = authData.username();
             }

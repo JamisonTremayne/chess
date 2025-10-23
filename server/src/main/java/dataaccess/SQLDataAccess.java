@@ -1,7 +1,10 @@
 package dataaccess;
 
 import datamodel.*;
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -22,7 +25,19 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public void createUser(UserData user) {
-
+        String username = user.username();
+        String password = BCrypt.hashpw(user.password(), BCrypt.gensalt());
+        String email = user.email();
+        String statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, username);
+                ps.setString(2, password);
+                ps.setString(3, email);
+            }
+        } catch (DataAccessException | SQLException ex) {
+            //Do something
+        }
     }
 
     @Override

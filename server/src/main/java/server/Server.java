@@ -16,7 +16,7 @@ public class Server {
     private final UserService userService;
     private final GameService gameService;
 
-    public Server() throws DataAccessException {
+    public Server() {
         DataAccess dataAccess = new SQLDataAccess();
         server = Javalin.create(config -> config.staticFiles.add("web"));
 

@@ -1,15 +1,18 @@
 package dataaccess;
 
-import datamodel.AuthData;
-import datamodel.GameData;
-import datamodel.UserData;
-
+import datamodel.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class SQLDataAccess implements DataAccess {
 
-    public SQLDataAccess() throws DataAccessException {
-        DatabaseManager.createDatabase();
+    public SQLDataAccess() {
+        try {
+            configureDatabase();
+        } catch (DataAccessException ex) {
+            System.out.println("Lol doesn't work my brotha");
+        }
     }
 
     @Override
@@ -60,5 +63,51 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void deleteAuth(AuthData authData) {
 
+    }
+
+
+    private final String[] createStatements = {
+            """
+            CREATE TABLE IF NOT EXISTS  `user` (
+                `username` VARCHAR(256) NOT NULL,
+                `password` VARCHAR(256) NOT NULL,
+                `email` VARCHAR(256) DEFAULT NULL,
+                PRIMARY KEY (`username`),
+                INDEX(`email`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS `auth` (
+                `username` VARCHAR(256) NOT NULL,
+                `authToken` VARCHAR(256) NOT NULL,
+                PRIMARY KEY (`username`),
+                INDEX(`authToken`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS `game` (
+                `gameID` INT NOT NULL,
+                `whiteUsername` VARCHAR(256),
+                `blackUsername` VARCHAR(256),
+                `gameName` VARCHAR(256) NOT NULL,
+                `game` TEXT NOT NULL,
+                PRIMARY KEY (`gameID`),
+                INDEX(`gameName`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+            """
+    };
+
+
+    private void configureDatabase() throws DataAccessException {
+        DatabaseManager.createDatabase();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            for (String statement : createStatements) {
+                try (var preparedStatement = conn.prepareStatement(statement)) {
+                    preparedStatement.executeUpdate();
+                }
+            }
+        } catch (SQLException ex) {
+            throw new DataAccessException(String.format("Unable to configure database: %s", ex.getMessage()));
+        }
     }
 }

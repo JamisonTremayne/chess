@@ -5,6 +5,7 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -25,15 +26,16 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public void createUser(UserData user) {
-        String username = user.username();
-        String password = BCrypt.hashpw(user.password(), BCrypt.gensalt());
-        String email = user.email();
-        String statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
         try (Connection conn = DatabaseManager.getConnection()) {
+            String username = user.username();
+            String password = BCrypt.hashpw(user.password(), BCrypt.gensalt());
+            String email = user.email();
+            String statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, username);
                 ps.setString(2, password);
                 ps.setString(3, email);
+                ps.executeUpdate();
             }
         } catch (DataAccessException | SQLException ex) {
             //Do something
@@ -42,6 +44,20 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public UserData getUser(String username) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT username, password, email FROM user WHERE username=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, username);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    String password = rs.getString("password");
+                    String email = rs.getString("email");
+                    return new UserData(username, password, email);
+                }
+            }
+        } catch (DataAccessException | SQLException ex) {
+            //Do something
+        }
         return null;
     }
 

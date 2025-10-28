@@ -21,7 +21,13 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public void clear() {
-
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "DROP DATABASE chess";
+            conn.prepareStatement(statement).executeUpdate();
+            configureDatabase();
+        } catch (DataAccessException | SQLException ex) {
+            //Do something
+        }
     }
 
     @Override
@@ -63,7 +69,7 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public void createGame(GameData gameData) {
-
+        
     }
 
     @Override

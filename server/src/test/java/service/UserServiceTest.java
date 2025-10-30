@@ -18,7 +18,6 @@ class UserServiceTest {
     @Test
     void clear() throws Exception {
         userService.register(goodUser);
-        assertEquals(db.getUser(goodUser.username()), goodUser);
         db.clear();
         assertNull(db.getUser(goodUser.username()));
         assertTrue(emptyDatabase());

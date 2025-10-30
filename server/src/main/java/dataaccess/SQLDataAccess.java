@@ -1,5 +1,7 @@
 package dataaccess;
 
+import chess.ChessGame;
+import com.google.gson.Gson;
 import datamodel.*;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -69,11 +71,41 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public void createGame(GameData gameData) {
-        
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "INSERT INTO game (gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?, ?)";
+            String json = gameData.game().toString();
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setInt(1, gameData.gameID());
+                ps.setString(2, gameData.whiteUsername());
+                ps.setString(3, gameData.blackUsername());
+                ps.setString(4, gameData.gameName());
+                ps.setString(5, json);
+                ps.executeUpdate();
+            }
+        } catch (DataAccessException | SQLException ex) {
+            //Do something
+        }
     }
 
     @Override
     public GameData getGame(Integer gameID) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM game WHERE gameID=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setInt(1, gameID);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    String whiteUsername = rs.getString("whiteUsername");
+                    String blackUsername = rs.getString("blackUsername");
+                    String gameName = rs.getString("gameName");
+                    String jsonGame = rs.getString("game");
+                    ChessGame game = new Gson().fromJson(jsonGame, ChessGame.class);
+                    return new GameData(gameID, whiteUsername, blackUsername, gameName, game);
+                }
+            }
+        } catch (DataAccessException | SQLException ex) {
+            //Do something
+        }
         return null;
     }
 

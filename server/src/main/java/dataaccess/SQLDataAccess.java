@@ -3,6 +3,7 @@ package dataaccess;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import datamodel.*;
+import exception.RequestException;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
@@ -13,27 +14,23 @@ import java.util.ArrayList;
 
 public class SQLDataAccess implements DataAccess {
 
-    public SQLDataAccess() {
-        try {
-            configureDatabase();
-        } catch (DataAccessException ex) {
-            System.out.println("Lol doesn't work my brotha");
-        }
+    public SQLDataAccess() throws DataAccessException {
+        configureDatabase();
     }
 
     @Override
-    public void clear() {
+    public void clear() throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
             String statement = "DROP DATABASE chess";
             conn.prepareStatement(statement).executeUpdate();
             configureDatabase();
         } catch (DataAccessException | SQLException ex) {
-            //Do something
+            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
         }
     }
 
     @Override
-    public void createUser(UserData user) {
+    public void createUser(UserData user) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
             String username = user.username();
             String password = BCrypt.hashpw(user.password(), BCrypt.gensalt());
@@ -46,12 +43,12 @@ public class SQLDataAccess implements DataAccess {
                 ps.executeUpdate();
             }
         } catch (DataAccessException | SQLException ex) {
-            //Do something
+            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
         }
     }
 
     @Override
-    public UserData getUser(String username) {
+    public UserData getUser(String username) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
             String statement = "SELECT username, password, email FROM user WHERE username=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
@@ -64,13 +61,13 @@ public class SQLDataAccess implements DataAccess {
                 }
             }
         } catch (DataAccessException | SQLException ex) {
-            //Do something
+            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
         }
         return null;
     }
 
     @Override
-    public void createGame(GameData gameData) {
+    public void createGame(GameData gameData) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
             String statement = "INSERT INTO game (gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?, ?)";
             String json = gameData.game().toString();
@@ -83,12 +80,12 @@ public class SQLDataAccess implements DataAccess {
                 ps.executeUpdate();
             }
         } catch (DataAccessException | SQLException ex) {
-            //Do something
+            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
         }
     }
 
     @Override
-    public GameData getGame(Integer gameID) {
+    public GameData getGame(Integer gameID) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
             String statement = "SELECT * FROM game WHERE gameID=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
@@ -104,13 +101,13 @@ public class SQLDataAccess implements DataAccess {
                 }
             }
         } catch (DataAccessException | SQLException ex) {
-            //Do something
+            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
         }
         return null;
     }
 
     @Override
-    public ArrayList<GameData> listGames() {
+    public ArrayList<GameData> listGames() throws RequestException {
        ArrayList<GameData> gameList = new ArrayList<>();
        try (Connection conn = DatabaseManager.getConnection()) {
            String statement = "SELECT gameID FROM game";
@@ -122,13 +119,13 @@ public class SQLDataAccess implements DataAccess {
                }
            }
        } catch (DataAccessException | SQLException ex) {
-           //Do something
+           throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
        }
         return gameList;
     }
 
     @Override
-    public void updateGame(Integer gameID, GameData gameData) {
+    public void updateGame(Integer gameID, GameData gameData) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
             String deleteStatement = "DELETE FROM game WHERE gameID=?";
             try (PreparedStatement ps = conn.prepareStatement(deleteStatement)) {
@@ -137,12 +134,12 @@ public class SQLDataAccess implements DataAccess {
             }
             createGame(gameData);
         } catch (DataAccessException | SQLException ex) {
-            //Do something
+            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
         }
     }
 
     @Override
-    public void createAuth(AuthData authData) {
+    public void createAuth(AuthData authData) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
             String statement = "INSERT INTO auth (username, authToken) VALUES (?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
@@ -151,12 +148,12 @@ public class SQLDataAccess implements DataAccess {
                 ps.executeUpdate();
             }
         } catch (DataAccessException | SQLException ex) {
-            //Do something
+            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
         }
     }
 
     @Override
-    public AuthData getAuth(String authToken) {
+    public AuthData getAuth(String authToken) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
             String statement = "SELECT * FROM auth WHERE authToken=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
@@ -167,13 +164,13 @@ public class SQLDataAccess implements DataAccess {
                 }
             }
         } catch (DataAccessException | SQLException ex) {
-            //Do something
+            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
         }
         return null;
     }
 
     @Override
-    public void deleteAuth(AuthData authData) {
+    public void deleteAuth(AuthData authData) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
             String statement = "DELETE FROM authData WHERE authToken=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
@@ -181,7 +178,7 @@ public class SQLDataAccess implements DataAccess {
                 ps.executeUpdate();
             }
         } catch (DataAccessException | SQLException ex) {
-            //Do something
+            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
         }
     }
 

@@ -22,7 +22,7 @@ public class UserService {
         userAlreadyTakenEx = new RequestException("Error: already taken", RequestException.Code.AlreadyTakenError);
     }
 
-    public void clear() {
+    public void clear() throws RequestException {
         dataAccess.clear();
     }
 

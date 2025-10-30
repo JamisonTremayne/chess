@@ -1,18 +1,19 @@
 package dataaccess;
 
 import datamodel.*;
+import exception.RequestException;
 
 import java.util.ArrayList;
 
 public interface DataAccess {
-    void clear();
-    void createUser(UserData user);
-    UserData getUser(String username);
-    void createGame(GameData gameData);
-    GameData getGame(Integer gameID);
-    ArrayList<GameData> listGames();
-    void updateGame(Integer gameID, GameData gameData);
-    void createAuth(AuthData authData);
-    AuthData getAuth(String authToken);
-    void deleteAuth(AuthData authData);
+    void clear() throws RequestException;
+    void createUser(UserData user) throws RequestException;
+    UserData getUser(String username) throws RequestException;
+    void createGame(GameData gameData) throws RequestException;
+    GameData getGame(Integer gameID) throws RequestException;
+    ArrayList<GameData> listGames() throws RequestException;
+    void updateGame(Integer gameID, GameData gameData) throws RequestException;
+    void createAuth(AuthData authData) throws RequestException;
+    AuthData getAuth(String authToken) throws RequestException;
+    void deleteAuth(AuthData authData) throws RequestException;
 }

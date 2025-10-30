@@ -1,6 +1,8 @@
 package dataaccess;
 
 import datamodel.UserData;
+import exception.RequestException;
+import org.eclipse.jetty.server.Request;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -8,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class DataAccessTest {
 
     @Test
-    void clear() {
+    void clear() throws RequestException {
         DataAccess db = new MemoryDataAccess();
         db.createUser(new UserData("joe", "j@j.com", "toomanysecrets"));
         db.clear();
@@ -16,7 +18,7 @@ class DataAccessTest {
     }
 
     @Test
-    void createUser() {
+    void createUser() throws RequestException {
         DataAccess db = new MemoryDataAccess();
         var user = new UserData("joe", "j@j.com", "toomanysecrets");
         db.createUser(user);

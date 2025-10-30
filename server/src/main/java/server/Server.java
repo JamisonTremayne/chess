@@ -17,7 +17,13 @@ public class Server {
     private final GameService gameService;
 
     public Server() {
-        DataAccess dataAccess = new SQLDataAccess();
+        DataAccess dataAccess;
+        try {
+            dataAccess = new SQLDataAccess();
+        } catch (DataAccessException ex) {
+            System.out.println(ex.getMessage());
+            dataAccess = new MemoryDataAccess();
+        }
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
         server.delete("db", this::clear);
@@ -42,8 +48,12 @@ public class Server {
     }
 
     private void clear(Context ctx) {
-        userService.clear();
-        ctx.result("{}");
+        try {
+            userService.clear();
+            ctx.result("{}");
+        } catch (RequestException ex) {
+            ctx.status(ex.toHttpStatusCode()).result(ex.toJson());
+        }
     }
 
     private void registerHandler(Context ctx) {

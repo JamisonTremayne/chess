@@ -9,7 +9,8 @@ public class RequestException extends Exception {
         BadRequestError,
         UnauthorizedError,
         AlreadyTakenError,
-        ServerError
+        ServerError,
+        DataAccessError
     }
 
     private final Code code;
@@ -25,7 +26,7 @@ public class RequestException extends Exception {
 
     public int toHttpStatusCode() {
         return switch (code) {
-            case ServerError -> 500;
+            case ServerError, DataAccessError -> 500;
             case BadRequestError -> 400;
             case UnauthorizedError -> 401;
             case AlreadyTakenError -> 403;

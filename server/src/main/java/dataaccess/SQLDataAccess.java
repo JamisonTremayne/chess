@@ -13,6 +13,8 @@ import java.util.ArrayList;
 
 public class SQLDataAccess implements DataAccess {
 
+    private final RequestException dataAccessException = new RequestException("Error: data access error", RequestException.Code.DataAccessError);
+    
     public SQLDataAccess() throws RequestException {
         configureDatabase();
     }
@@ -20,18 +22,21 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void clear() throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "DROP DATABASE chess";
-            conn.prepareStatement(statement).executeUpdate();
-            configureDatabase();
+            String statement1 = "DELETE FROM auth";
+            String statement2 = "DELETE FROM user";
+            String statement3 = "DELETE FROM game";
+            conn.prepareStatement(statement1).executeUpdate();
+            conn.prepareStatement(statement2).executeUpdate();
+            conn.prepareStatement(statement3).executeUpdate();
         } catch (DataAccessException | SQLException ex) {
-            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
+            throw dataAccessException;
         }
     }
 
     @Override
     public void createUser(UserData user) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
+            String statement = "INSERT INTO `user`(username, password, email) VALUES (?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, user.username());
                 ps.setString(2, user.password());
@@ -39,14 +44,14 @@ public class SQLDataAccess implements DataAccess {
                 ps.executeUpdate();
             }
         } catch (DataAccessException | SQLException ex) {
-            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
+            throw dataAccessException;
         }
     }
 
     @Override
     public UserData getUser(String username) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "SELECT username, password, email FROM user WHERE username=?";
+            String statement = "SELECT username, password, email FROM `user`WHERE username=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, username);
                 ResultSet rs = ps.executeQuery();
@@ -57,7 +62,7 @@ public class SQLDataAccess implements DataAccess {
                 }
             }
         } catch (DataAccessException | SQLException ex) {
-            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
+            throw dataAccessException;
         }
         return null;
     }
@@ -65,7 +70,7 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void createGame(GameData gameData) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "INSERT INTO game (gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?, ?)";
+            String statement = "INSERT INTO `game`(gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?, ?)";
             String json = gameData.game().toString();
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setInt(1, gameData.gameID());
@@ -76,14 +81,14 @@ public class SQLDataAccess implements DataAccess {
                 ps.executeUpdate();
             }
         } catch (Exception ex) {
-            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
+            throw dataAccessException;
         }
     }
 
     @Override
     public GameData getGame(Integer gameID) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "SELECT * FROM game WHERE gameID=?";
+            String statement = "SELECT * FROM `game`WHERE gameID=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setInt(1, gameID);
                 ResultSet rs = ps.executeQuery();
@@ -97,7 +102,7 @@ public class SQLDataAccess implements DataAccess {
                 }
             }
         } catch (DataAccessException | SQLException ex) {
-            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
+            throw dataAccessException;
         }
         return null;
     }
@@ -115,7 +120,7 @@ public class SQLDataAccess implements DataAccess {
                }
            }
        } catch (DataAccessException | SQLException ex) {
-           throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
+           throw dataAccessException;
        }
         return gameList;
     }
@@ -123,7 +128,7 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void updateGame(Integer gameID, GameData gameData) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String deleteStatement = "UPDATE game " +
+            String deleteStatement = "UPDATE `game`" +
                     "SET gameID=?, whiteUsername=?, blackUsername=?, gameName=?, game=? " +
                     "WHERE gameID=?";
             try (PreparedStatement ps = conn.prepareStatement(deleteStatement)) {
@@ -131,34 +136,34 @@ public class SQLDataAccess implements DataAccess {
                 ps.setString(2, gameData.whiteUsername());
                 ps.setString(3, gameData.blackUsername());
                 ps.setString(4, gameData.gameName());
-                String jsonGame = new Gson().toJson(gameData.game());
+                String jsonGame = gameData.game().toString();
                 ps.setString(5, jsonGame);
                 ps.setInt(6, gameID);
                 ps.executeUpdate();
             }
         } catch (DataAccessException | SQLException ex) {
-            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
+            throw dataAccessException;
         }
     }
 
     @Override
     public void createAuth(AuthData authData) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "INSERT INTO auth (username, authToken) VALUES (?, ?)";
+            String statement = "INSERT INTO `auth`(username, authToken) VALUES (?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, authData.username());
                 ps.setString(2, authData.authToken());
                 ps.executeUpdate();
             }
         } catch (DataAccessException | SQLException ex) {
-            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
+            throw dataAccessException;
         }
     }
 
     @Override
     public AuthData getAuth(String authToken) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "SELECT * FROM auth WHERE authToken=?";
+            String statement = "SELECT * FROM `auth`WHERE authToken=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, authToken);
                 ResultSet rs = ps.executeQuery();
@@ -167,7 +172,7 @@ public class SQLDataAccess implements DataAccess {
                 }
             }
         } catch (DataAccessException | SQLException ex) {
-            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
+            throw dataAccessException;
         }
         return null;
     }
@@ -175,13 +180,13 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void deleteAuth(AuthData authData) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "DELETE FROM auth WHERE authToken=?";
+            String statement = "DELETE FROM `auth`WHERE authToken=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, authData.authToken());
                 ps.executeUpdate();
             }
         } catch (DataAccessException | SQLException ex) {
-            throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
+            throw dataAccessException;
         }
     }
 
@@ -189,28 +194,27 @@ public class SQLDataAccess implements DataAccess {
     private final String[] createStatements = {
             """
             CREATE TABLE IF NOT EXISTS  `user` (
-                `username` VARCHAR(256) NOT NULL,
-                `password` VARCHAR(256) NOT NULL,
-                `email` VARCHAR(256) DEFAULT NULL,
+                `username` VARCHAR(255) NOT NULL,
+                `password` VARCHAR(255) NOT NULL,
+                `email` VARCHAR(255) DEFAULT NULL,
                 PRIMARY KEY (`username`),
                 INDEX(`email`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
             """,
             """
             CREATE TABLE IF NOT EXISTS `auth` (
-                `username` VARCHAR(256) NOT NULL,
-                `authToken` VARCHAR(256) NOT NULL,
-                PRIMARY KEY (`username`),
-                INDEX(`authToken`)
+                `username` VARCHAR(255) NOT NULL,
+                `authToken` VARCHAR(512) NOT NULL,
+                PRIMARY KEY (`authToken`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
             """,
             """
             CREATE TABLE IF NOT EXISTS `game` (
                 `gameID` INT NOT NULL,
-                `whiteUsername` VARCHAR(256),
-                `blackUsername` VARCHAR(256),
-                `gameName` VARCHAR(256) NOT NULL,
-                `game` TEXT NOT NULL,
+                `whiteUsername` VARCHAR(255),
+                `blackUsername` VARCHAR(255),
+                `gameName` VARCHAR(255) NOT NULL,
+                `game` LONGTEXT NOT NULL,
                 PRIMARY KEY (`gameID`),
                 INDEX(`gameName`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -229,7 +233,7 @@ public class SQLDataAccess implements DataAccess {
                 }
             }
         } catch (SQLException | DataAccessException ex) {
-            throw new RequestException(String.format("Unable to configure database: %s", ex.getMessage()), RequestException.Code.DataAccessError);
+            throw new RequestException(String.format("Error: Unable to configure database: %s", ex.getMessage()), RequestException.Code.DataAccessError);
         }
     }
 }

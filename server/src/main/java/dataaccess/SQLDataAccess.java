@@ -90,7 +90,7 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public GameData getGame(Integer gameID) {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM game WHERE gameID=?";
+            String statement = "SELECT * FROM game WHERE gameID=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setInt(1, gameID);
                 ResultSet rs = ps.executeQuery();
@@ -129,22 +129,60 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public void updateGame(Integer gameID, GameData gameData) {
-
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String deleteStatement = "DELETE FROM game WHERE gameID=?";
+            try (PreparedStatement ps = conn.prepareStatement(deleteStatement)) {
+                ps.setInt(1, gameID);
+                ps.executeUpdate();
+            }
+            createGame(gameData);
+        } catch (DataAccessException | SQLException ex) {
+            //Do something
+        }
     }
 
     @Override
     public void createAuth(AuthData authData) {
-
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "INSERT INTO auth (username, authToken) VALUES (?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, authData.username());
+                ps.setString(2, authData.authToken());
+                ps.executeUpdate();
+            }
+        } catch (DataAccessException | SQLException ex) {
+            //Do something
+        }
     }
 
     @Override
     public AuthData getAuth(String authToken) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT * FROM auth WHERE authToken=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, authToken);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    return new AuthData(rs.getString("username"), authToken);
+                }
+            }
+        } catch (DataAccessException | SQLException ex) {
+            //Do something
+        }
         return null;
     }
 
     @Override
     public void deleteAuth(AuthData authData) {
-
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "DELETE FROM authData WHERE authToken=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, authData.authToken());
+                ps.executeUpdate();
+            }
+        } catch (DataAccessException | SQLException ex) {
+            //Do something
+        }
     }
 
 

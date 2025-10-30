@@ -233,7 +233,7 @@ public class SQLDataAccess implements DataAccess {
                 }
             }
         } catch (SQLException | DataAccessException ex) {
-            throw new RequestException(String.format("Error: Unable to configure database: %s", ex.getMessage()), RequestException.Code.DataAccessError);
+            throw new RequestException("Error: Unable to configure database" , RequestException.Code.DataAccessError);
         }
     }
 }

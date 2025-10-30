@@ -79,7 +79,7 @@ class UserServiceTest {
     void logoutSuccess() throws RequestException {
         LoginResponse loginResult = userService.register(goodUser);
         userService.logout(new LogoutRequest(loginResult.authToken()));
-        assertNull(db.getAuth(loginResult.authToken()));
+        assertThrows(RequestException.class, () -> db.getAuth(loginResult.authToken()));
     }
 
     @Test

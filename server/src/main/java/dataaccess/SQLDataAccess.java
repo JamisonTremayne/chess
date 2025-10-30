@@ -75,7 +75,7 @@ public class SQLDataAccess implements DataAccess {
                 ps.setString(5, json);
                 ps.executeUpdate();
             }
-        } catch (DataAccessException | SQLException ex) {
+        } catch (Exception ex) {
             throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
         }
     }
@@ -123,12 +123,19 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void updateGame(Integer gameID, GameData gameData) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String deleteStatement = "DELETE FROM game WHERE gameID=?";
+            String deleteStatement = "UPDATE game " +
+                    "SET gameID=?, whiteUsername=?, blackUsername=?, gameName=?, game=? " +
+                    "WHERE gameID=?";
             try (PreparedStatement ps = conn.prepareStatement(deleteStatement)) {
-                ps.setInt(1, gameID);
+                ps.setInt(1, gameData.gameID());
+                ps.setString(2, gameData.whiteUsername());
+                ps.setString(3, gameData.blackUsername());
+                ps.setString(4, gameData.gameName());
+                String jsonGame = new Gson().toJson(gameData.game());
+                ps.setString(5, jsonGame);
+                ps.setInt(6, gameID);
                 ps.executeUpdate();
             }
-            createGame(gameData);
         } catch (DataAccessException | SQLException ex) {
             throw new RequestException(ex.getMessage(), RequestException.Code.DataAccessError);
         }

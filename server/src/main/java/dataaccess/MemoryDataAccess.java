@@ -1,6 +1,7 @@
 package dataaccess;
 
 import datamodel.*;
+import exception.RequestException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,7 +19,10 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void createUser(UserData user) {
+    public void createUser(UserData user) throws RequestException {
+        if (user.username() == null || user.password() == null || user.email() == null) {
+            throw new RequestException("data access error", RequestException.Code.DataAccessError);
+        }
         users.put(user.username(), user);
     }
 
@@ -28,12 +32,15 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void createGame(GameData gameData) {
+    public void createGame(GameData gameData) throws RequestException {
+        if (games.containsKey(gameData.gameID()) || gameData.gameName() == null || gameData.game() == null) {
+            throw new RequestException("data access error", RequestException.Code.DataAccessError);
+        }
         games.put(gameData.gameID(), gameData);
     }
 
     @Override
-    public GameData getGame(Integer gameID) {
+    public GameData getGame(Integer gameID) throws RequestException {
         return games.get(gameID);
     }
 
@@ -47,18 +54,27 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void updateGame(Integer gameID, GameData gameData) {
+    public void updateGame(Integer gameID, GameData gameData) throws RequestException {
+        if (gameData.gameName() == null || gameData.game() == null) {
+            throw new RequestException("data access error", RequestException.Code.DataAccessError);
+        }
         games.remove(gameID);
         games.put(gameData.gameID(), gameData);
     }
 
     @Override
-    public void createAuth(AuthData authData) {
+    public void createAuth(AuthData authData) throws RequestException {
+        if (authData.authToken() == null || authData.username() == null) {
+            throw new RequestException("data access error", RequestException.Code.DataAccessError);
+        }
         auths.put(authData.authToken(), authData);
     }
 
     @Override
-    public AuthData getAuth(String authToken) {
+    public AuthData getAuth(String authToken) throws RequestException {
+        if (authToken == null) {
+            throw new RequestException("data access error", RequestException.Code.DataAccessError);
+        }
         return auths.get(authToken);
     }
 

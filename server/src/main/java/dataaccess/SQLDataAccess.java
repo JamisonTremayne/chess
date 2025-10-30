@@ -4,7 +4,6 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import datamodel.*;
 import exception.RequestException;
-import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,7 +13,7 @@ import java.util.ArrayList;
 
 public class SQLDataAccess implements DataAccess {
 
-    public SQLDataAccess() throws DataAccessException {
+    public SQLDataAccess() throws RequestException {
         configureDatabase();
     }
 
@@ -32,14 +31,11 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void createUser(UserData user) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String username = user.username();
-            String password = BCrypt.hashpw(user.password(), BCrypt.gensalt());
-            String email = user.email();
             String statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                ps.setString(1, username);
-                ps.setString(2, password);
-                ps.setString(3, email);
+                ps.setString(1, user.username());
+                ps.setString(2, user.password());
+                ps.setString(3, user.email());
                 ps.executeUpdate();
             }
         } catch (DataAccessException | SQLException ex) {
@@ -215,16 +211,18 @@ public class SQLDataAccess implements DataAccess {
     };
 
 
-    private void configureDatabase() throws DataAccessException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            for (String statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
+    private void configureDatabase() throws RequestException {
+        try {
+            DatabaseManager.createDatabase();
+            try (Connection conn = DatabaseManager.getConnection()) {
+                for (String statement : createStatements) {
+                    try (var preparedStatement = conn.prepareStatement(statement)) {
+                        preparedStatement.executeUpdate();
+                    }
                 }
             }
-        } catch (SQLException ex) {
-            throw new DataAccessException(String.format("Unable to configure database: %s", ex.getMessage()));
+        } catch (SQLException | DataAccessException ex) {
+            throw new RequestException(String.format("Unable to configure database: %s", ex.getMessage()), RequestException.Code.DataAccessError);
         }
     }
 }

@@ -20,7 +20,7 @@ public class Server {
         DataAccess dataAccess;
         try {
             dataAccess = new SQLDataAccess();
-        } catch (DataAccessException ex) {
+        } catch (RequestException ex) {
             System.out.println(ex.getMessage());
             dataAccess = new MemoryDataAccess();
         }

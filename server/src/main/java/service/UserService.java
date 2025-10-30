@@ -3,6 +3,7 @@ package service;
 import dataaccess.DataAccess;
 import datamodel.*;
 import exception.RequestException;
+import org.mindrot.jbcrypt.BCrypt;
 import request.*;
 import response.*;
 
@@ -33,7 +34,8 @@ public class UserService {
         if (dataAccess.getUser(user.username()) != null) {
             throw userAlreadyTakenEx;
         }
-        dataAccess.createUser(user);
+        String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
+        dataAccess.createUser(new UserData(user.username(), hashedPassword, user.email()));
         LoginRequest loginRequest = new LoginRequest(user.username(), user.password());
 
         return login(loginRequest);
@@ -44,7 +46,7 @@ public class UserService {
         if (loginRequest.username() == null || loginRequest.password() == null) {
             throw userBadRequestEx;
         }
-        if (user == null || !loginRequest.password().equals(user.password())) {
+        if (user == null || !BCrypt.checkpw(loginRequest.password(), user.password())) {
             throw userUnauthorizedEx;
         }
         String authToken = generateToken();

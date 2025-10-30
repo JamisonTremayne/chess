@@ -111,7 +111,20 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public ArrayList<GameData> listGames() {
-        return null;
+       ArrayList<GameData> gameList = new ArrayList<>();
+       try (Connection conn = DatabaseManager.getConnection()) {
+           String statement = "SELECT gameID FROM game";
+           try (PreparedStatement ps = conn.prepareStatement(statement)) {
+               ResultSet rs = ps.executeQuery();
+               while (rs.next()) {
+                   int gameID = rs.getInt("gameID");
+                   gameList.add(getGame(gameID));
+               }
+           }
+       } catch (DataAccessException | SQLException ex) {
+           //Do something
+       }
+        return gameList;
     }
 
     @Override

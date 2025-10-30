@@ -168,7 +168,7 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void deleteAuth(AuthData authData) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "DELETE FROM authData WHERE authToken=?";
+            String statement = "DELETE FROM auth WHERE authToken=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, authData.authToken());
                 ps.executeUpdate();

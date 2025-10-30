@@ -48,7 +48,8 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public void updateGame(Integer gameID, GameData gameData) {
-        games.replace(gameID, gameData);
+        games.remove(gameID);
+        games.put(gameData.gameID(), gameData);
     }
 
     @Override

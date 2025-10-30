@@ -11,12 +11,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.util.ArrayList;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DataAccessTest {
 
     private final UserData userExample = new UserData("joe", "toomanysecrets", "j@j.com");
     private final GameData gameExample = new GameData(1, null, null, "game", new ChessGame());
+    private final GameData otherGameExample = new GameData(2, "bib", null, "nono", new ChessGame());
     private final AuthData authExample = new AuthData("joe", "my-authtoken");
 
     private DataAccess getDataAccess(Class<? extends DataAccess> databaseClass) throws RequestException {
@@ -84,5 +87,58 @@ class DataAccessTest {
         db.createGame(gameExample);
         GameData gotGame = db.getGame(gameExample.gameID());
         assertEquals(gotGame, gameExample);
+    }
+
+    @ParameterizedTest
+    @ValueSource(classes = {SQLDataAccess.class, MemoryDataAccess.class})
+    void listGames(Class<? extends DataAccess> dbClass) throws RequestException {
+        DataAccess db = getDataAccess(dbClass);
+
+        db.createGame(gameExample);
+        db.createGame((otherGameExample));
+        ArrayList<GameData> gameList = db.listGames();
+        assertEquals(2, gameList.size());
+        assertNotEquals(gameList.get(0), gameList.get(1));
+    }
+
+    @ParameterizedTest
+    @ValueSource(classes = {SQLDataAccess.class, MemoryDataAccess.class})
+    void updateGame(Class<? extends DataAccess> dbClass) throws RequestException {
+        DataAccess db = getDataAccess(dbClass);
+
+        db.createGame(gameExample);
+        db.updateGame(gameExample.gameID(), otherGameExample);
+        GameData gotGame = db.getGame(otherGameExample.gameID());
+        assertEquals(otherGameExample, gotGame);
+        assertNotEquals(gameExample, gotGame);
+    }
+
+    @ParameterizedTest
+    @ValueSource(classes = {SQLDataAccess.class, MemoryDataAccess.class})
+    void createAuth(Class<? extends DataAccess> dbClass) throws RequestException {
+        DataAccess db = getDataAccess(dbClass);
+
+        db.createAuth(authExample);
+        assertEquals(authExample.authToken(), db.getAuth(authExample.authToken()).authToken());
+    }
+
+    @ParameterizedTest
+    @ValueSource(classes = {SQLDataAccess.class, MemoryDataAccess.class})
+    void getAuth(Class<? extends DataAccess> dbClass) throws RequestException {
+        DataAccess db = getDataAccess(dbClass);
+
+        db.createAuth(authExample);
+        AuthData gotAuth = db.getAuth(authExample.authToken());
+        assertEquals(gotAuth, authExample);
+    }
+
+    @ParameterizedTest
+    @ValueSource(classes = {SQLDataAccess.class, MemoryDataAccess.class})
+    void deleteAuth(Class<? extends DataAccess> dbClass) throws RequestException {
+        DataAccess db = getDataAccess(dbClass);
+
+        db.createAuth(authExample);
+        db.deleteAuth(authExample);
+        assertNull(db.getAuth(authExample.authToken()));
     }
 }

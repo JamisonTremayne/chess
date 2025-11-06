@@ -32,6 +32,18 @@ public class ServerFacade {
         return handleResponse(response, LoginResponse.class);
     }
 
+    public void logout(LogoutRequest logoutRequest) throws RequestException {
+        HttpRequest request = buildRequest("DELETE", "session", logoutRequest);
+        HttpResponse<String> response = sendRequest(request);
+        handleResponse(response, null);
+    }
+
+    public ListGamesResponse listGames(ListGamesRequest listGamesRequest) throws RequestException {
+        HttpRequest request = buildRequest("GET", "game", listGamesRequest);
+        HttpResponse<String> response = sendRequest(request);
+        return handleResponse(response, ListGamesResponse.class);
+    }
+
     private HttpRequest buildRequest(String method, String path, Object body) {
         Builder request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))

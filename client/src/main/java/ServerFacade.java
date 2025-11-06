@@ -1,6 +1,8 @@
 import com.google.gson.Gson;
-import datamodel.UserData;
+import datamodel.*;
 import exception.RequestException;
+import response.*;
+import request.*;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -18,10 +20,16 @@ public class ServerFacade {
         serverUrl = url;
     }
 
-    public UserData register(UserData userData) {
+    public LoginResponse register(UserData userData) throws RequestException {
         HttpRequest request = buildRequest("POST", "user", userData);
+        HttpResponse<String> response = sendRequest(request);
+        return handleResponse(response, LoginResponse.class);
+    }
 
-        return null;
+    public LoginResponse login(LoginRequest loginRequest) throws RequestException {
+        HttpRequest request = buildRequest("POST", "session", loginRequest);
+        HttpResponse<String> response = sendRequest(request);
+        return handleResponse(response, LoginResponse.class);
     }
 
     private HttpRequest buildRequest(String method, String path, Object body) {

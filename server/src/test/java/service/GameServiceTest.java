@@ -5,7 +5,6 @@ import dataaccess.*;
 import datamodel.*;
 import exception.RequestException;
 import org.junit.jupiter.api.Test;
-import request.*;
 import response.*;
 
 import static org.junit.jupiter.api.Assertions.*;

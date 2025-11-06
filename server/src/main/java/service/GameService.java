@@ -4,8 +4,8 @@ import chess.ChessGame;
 import dataaccess.*;
 import datamodel.*;
 import exception.RequestException;
-import request.*;
 import response.*;
+import request.*;
 
 import java.util.ArrayList;
 

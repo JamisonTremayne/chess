@@ -4,8 +4,8 @@ import dataaccess.DataAccess;
 import datamodel.*;
 import exception.RequestException;
 import org.mindrot.jbcrypt.BCrypt;
-import request.*;
 import response.*;
+import request.*;
 
 import java.util.UUID;
 

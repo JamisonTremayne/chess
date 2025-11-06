@@ -6,9 +6,9 @@ import datamodel.*;
 import exception.RequestException;
 import io.javalin.*;
 import io.javalin.http.Context;
-import request.*;
 import response.*;
 import service.*;
+import request.*;
 
 public class Server {
 
@@ -60,7 +60,7 @@ public class Server {
         Gson serializer = new Gson();
         try {
             String requestJson = ctx.body();
-            var user = serializer.fromJson(requestJson, UserData.class);
+            UserData user = serializer.fromJson(requestJson, UserData.class);
             LoginResponse loginResponse = userService.register(user);
             ctx.result(serializer.toJson(loginResponse));
         } catch (RequestException ex) {

@@ -1,11 +1,19 @@
 package ui;
 
+import serverfacade.ServerFacade;
+
 import java.util.Scanner;
 
 public abstract class ClientUI {
 
-    public String statusMessage = "NO STATUS";
+    private String statusMessage;
     public boolean quit = false;
+    public ServerFacade serverFacade;
+
+    public ClientUI(ServerFacade serverFacade, String statusMessage) {
+        this.statusMessage = statusMessage;
+        this.serverFacade = serverFacade;
+    }
 
     private static final String resetString = EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT
             + EscapeSequences.RESET_TEXT_BLINKING + EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_TEXT_ITALIC

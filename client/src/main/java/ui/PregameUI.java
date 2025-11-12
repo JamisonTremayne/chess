@@ -1,13 +1,15 @@
 package ui;
 
+import serverfacade.ServerFacade;
+
 import java.util.Random;
 
 public class PregameUI extends ClientUI {
 
-    private String[] quitStrings = new String[7];
+    private final String[] quitStrings = new String[7];
 
-    public PregameUI() {
-        statusMessage = "LOGGED OUT";
+    public PregameUI(ServerFacade serverFacade) {
+        super(serverFacade, "LOGGED OUT");
 
         quitStrings[0] = "I am so sad rn :(";
         quitStrings[1] = "I can' believe youv' done this";

@@ -1,12 +1,13 @@
 package ui;
 
+import datamodel.GameData;
 import exception.RequestException;
 import request.CreateGameRequest;
+import request.ListGamesRequest;
 import request.LogoutRequest;
 import response.CreateGameResponse;
+import response.ListGamesResponse;
 import serverfacade.ServerFacade;
-
-import java.util.Random;
 
 public class PostloginUI extends ClientUI {
 
@@ -80,8 +81,29 @@ public class PostloginUI extends ClientUI {
         return responseString;
     }
 
-    private String listGames() {
-        return "";
+    private String listGames() throws RequestException {
+        ListGamesRequest request = new ListGamesRequest(authToken);
+        ListGamesResponse response = serverFacade.listGames(request);
+        StringBuilder responseString = new StringBuilder(EscapeSequences.SET_TEXT_COLOR_GREEN + EscapeSequences.SET_TEXT_BOLD);
+        responseString.append("Found ").append(response.games().size()).append(" available games:\n");
+        responseString.append(EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.RESET_TEXT_BOLD_FAINT);
+        for (GameData game : response.games()) {
+            responseString.append("     - Game Name: ").append(game.gameName());
+            responseString.append(", ID: ").append(game.gameID());
+            String whiteUser = game.whiteUsername();
+            if (whiteUser == null) {
+                whiteUser = EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + "None" + EscapeSequences.SET_TEXT_COLOR_BLUE;
+            }
+            responseString.append(", White Player: ").append(whiteUser);
+            String blackUser = game.blackUsername();
+            if (blackUser == null) {
+                blackUser = EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + "None" + EscapeSequences.SET_TEXT_COLOR_BLUE;
+            }
+            responseString.append(", Black Player: ").append(blackUser);
+            responseString.append("\n");
+        }
+
+        return responseString.toString();
     }
 
     private String joinGame(String[] args) {

@@ -45,25 +45,11 @@ public class PreloginUI extends ClientUI {
         }
     }
 
-    private String help() {
-        String helpString = "";
-        helpString += EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.SET_TEXT_BOLD;
-        helpString += "     help" + EscapeSequences.RESET_TEXT_BOLD_FAINT;
-        helpString += EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY;
-        helpString += " - List available commands.\n";
-        helpString += EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.SET_TEXT_BOLD;
-        helpString += "     register <USERNAME> <PASSWORD> <EMAIL>" + EscapeSequences.RESET_TEXT_BOLD_FAINT;
-        helpString += EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY;
-        helpString += " - Register as a new user.\n";
-        helpString += EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.SET_TEXT_BOLD;
-        helpString += "     login <USERNAME> <PASSWORD>" + EscapeSequences.RESET_TEXT_BOLD_FAINT;
-        helpString += EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY;
-        helpString += " - Login to an existing account.\n";
-        helpString += EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.SET_TEXT_BOLD;
-        helpString += "     quit" + EscapeSequences.RESET_TEXT_BOLD_FAINT;
-        helpString += EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY;
-        helpString += " - Quit the program :(";
-        helpString += EscapeSequences.RESET_TEXT_COLOR;
+    public String help() {
+        String helpString = formatHelp("help", "List available commands.");
+        helpString += formatHelp("register <USERNAME> <PASSWORD> <EMAIL>", "Register a new user.");
+        helpString += formatHelp("login <USERNAME> <PASSWORD>", "Login to an existing account.");
+        helpString += formatHelp("quit", "Quit the program.");
         return helpString;
     }
 
@@ -94,13 +80,11 @@ public class PreloginUI extends ClientUI {
 
     private String login(String[] args) throws Exception {
         if (args.length > 3) {
-            String errorString = EscapeSequences.SET_TEXT_COLOR_RED + "ERROR: ";
-            errorString += EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + " You gave too many arguments. \n";
+            String errorString = formatError("You gave too many arguments. \n");
             errorString += "To login, please provide your registered <USERNAME> <PASSWORD>, each separated by spaces.";
             return errorString;
         } else if (args.length < 3) {
-            String errorString = EscapeSequences.SET_TEXT_COLOR_RED + "ERROR: ";
-            errorString += EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + " You did not give enough arguments. \n";
+            String errorString = formatError("You did not give enough arguments. \n");
             errorString += "To register, please provide your registered <USERNAME> <PASSWORD>, each separated by spaces.";
             return errorString;
         }
@@ -120,16 +104,5 @@ public class PreloginUI extends ClientUI {
         quit = true;
         int randomIndex = new Random().nextInt(7);
         return quitStrings[randomIndex];
-    }
-
-    private String invalidCommand(String head) {
-        String invalidString = EscapeSequences.SET_TEXT_COLOR_RED + EscapeSequences.SET_TEXT_ITALIC;
-        invalidString += head + EscapeSequences.RESET_TEXT_ITALIC;
-        invalidString += " is not a valid command." + EscapeSequences.RESET_TEXT_COLOR;
-        invalidString += " Try typing ";
-        invalidString += EscapeSequences.SET_TEXT_BOLD + EscapeSequences.SET_TEXT_COLOR_GREEN;
-        invalidString += "help" + EscapeSequences.RESET_TEXT_BOLD_FAINT + EscapeSequences.RESET_TEXT_COLOR;
-        invalidString += " to get a list of valid commands :)";
-        return invalidString;
     }
 }

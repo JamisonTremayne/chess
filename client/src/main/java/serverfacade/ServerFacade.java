@@ -35,7 +35,7 @@ public class ServerFacade {
     }
 
     public void logout(LogoutRequest logoutRequest) throws RequestException {
-        HttpRequest request = buildRequest("DELETE", "/session", logoutRequest);
+        HttpRequest request = buildRequest("DELETE", "/session", null, "authorization", logoutRequest.authToken());
         HttpResponse<String> response = sendRequest(request);
         handleResponse(response, null);
     }
@@ -62,9 +62,14 @@ public class ServerFacade {
         Builder request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .method(method, makeRequestBody(body));
-        if (body != null) {
-            request.setHeader("Content-Type", "application/json");
-        }
+        return request.build();
+    }
+
+    private HttpRequest buildRequest(String method, String path, Object body, String headerName, String header) {
+        Builder request = HttpRequest.newBuilder()
+                .uri(URI.create(serverUrl + path))
+                .method(method, makeRequestBody(body))
+                .header(headerName, header);
         return request.build();
     }
 
@@ -80,7 +85,8 @@ public class ServerFacade {
         try {
             return client.send(request, BodyHandlers.ofString());
         } catch (Exception ex) {
-            throw new RequestException(ex.getMessage(), RequestException.Code.ServerError);
+            throw new RequestException("Cannot connect to the server. " +
+                    "Please make sure the server is running before continuing.", RequestException.Code.ServerError);
         }
     }
 

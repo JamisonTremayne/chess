@@ -35,7 +35,8 @@ public class ServerFacade {
     }
 
     public void logout(LogoutRequest logoutRequest) throws RequestException {
-        HttpRequest request = buildRequest("DELETE", "/session", null, "authorization", logoutRequest.authToken());
+        HttpRequest request = buildRequest("DELETE", "/session", null,
+                "authorization", logoutRequest.authToken());
         HttpResponse<String> response = sendRequest(request);
         handleResponse(response, null);
     }
@@ -47,7 +48,9 @@ public class ServerFacade {
     }
 
     public CreateGameResponse createGame(CreateGameRequest createGameRequest) throws RequestException {
-        HttpRequest request = buildRequest("POST", "/game", createGameRequest);
+        CreateGameRequestBody body = new CreateGameRequestBody(createGameRequest.gameName());
+        HttpRequest request = buildRequest("POST", "/game", body,
+                "authorization", createGameRequest.authToken());
         HttpResponse<String> response = sendRequest(request);
         return handleResponse(response, CreateGameResponse.class);
     }

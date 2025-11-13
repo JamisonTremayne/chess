@@ -1,6 +1,9 @@
 package ui;
 
+import exception.RequestException;
+import request.CreateGameRequest;
 import request.LogoutRequest;
+import response.CreateGameResponse;
 import serverfacade.ServerFacade;
 
 import java.util.Random;
@@ -19,7 +22,7 @@ public class PostloginUI extends ClientUI {
     public String parseCommand(String command) throws Exception {
         String[] commandWords = command.split(" ");
         if (commandWords.length == 0) {
-            throw new Exception();
+            throw new Exception("Invalid commands.");
         }
         String commandHead = commandWords[0].toLowerCase(); //NOT CASE SENSITIVE
         switch (commandHead) {
@@ -51,14 +54,30 @@ public class PostloginUI extends ClientUI {
         return helpString;
     }
 
-    private String logout() throws Exception {
+    private String logout() throws RequestException {
         serverFacade.logout(new LogoutRequest(authToken));
         changeUITo(new PreloginUI(serverFacade));
         return EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully logged out.";
     }
 
-    private String createGame(String[] args) {
-        return "";
+    private String createGame(String[] args) throws RequestException {
+        if (args.length < 2) {
+            return formatError("""
+                    You did not give enough arguments.
+                    To create a game, please give the <GAME NAME>.
+                    """);
+        } else if (args.length > 2) {
+            return formatError("""
+                    You gave too many arguments.
+                    To create a game, please give the <GAME NAME>.
+                    """);
+        }
+        CreateGameRequest createGameRequest = new CreateGameRequest(args[1], authToken);
+        CreateGameResponse response = serverFacade.createGame(createGameRequest);
+        String responseString = EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully created a new game: \n";
+        responseString += EscapeSequences.SET_TEXT_COLOR_BLUE + "Game Name: " + args[1];
+        responseString += ", Game ID: " + response.gameID();
+        return responseString;
     }
 
     private String listGames() {

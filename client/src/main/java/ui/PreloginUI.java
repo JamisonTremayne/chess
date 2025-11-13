@@ -1,6 +1,7 @@
 package ui;
 
 import datamodel.UserData;
+import request.LoginRequest;
 import response.LoginResponse;
 import serverfacade.ServerFacade;
 
@@ -69,12 +70,12 @@ public class PreloginUI extends ClientUI {
     private String register(String[] args) throws Exception {
         if (args.length > 4) {
             String errorString = EscapeSequences.SET_TEXT_COLOR_RED + "ERROR: ";
-            errorString += EscapeSequences.RESET_TEXT_COLOR + " You gave too many arguments. \n";
+            errorString += EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + " You gave too many arguments. \n";
             errorString += "To register, please give <USERNAME> <PASSWORD> <EMAIL>, each separated by spaces.";
             return errorString;
         } else if (args.length < 4) {
             String errorString = EscapeSequences.SET_TEXT_COLOR_RED + "ERROR: ";
-            errorString += EscapeSequences.RESET_TEXT_COLOR + " You did not give enough arguments. \n";
+            errorString += EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + " You did not give enough arguments. \n";
             errorString += "To register, please give <USERNAME> <PASSWORD> <EMAIL>, each separated by spaces.";
             return errorString;
         }
@@ -86,13 +87,32 @@ public class PreloginUI extends ClientUI {
         String returnString = EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully registered and logged in as ";
         returnString += EscapeSequences.SET_TEXT_BOLD + response.username();
         returnString += EscapeSequences.RESET_TEXT_BOLD_FAINT + "!";
-        PostloginUI postloginUI = new PostloginUI(serverFacade);
+        PostloginUI postloginUI = new PostloginUI(serverFacade, response.authToken());
         changeUITo(postloginUI);
         return returnString;
     }
 
-    private String login(String[] args) {
-        String returnString = "";
+    private String login(String[] args) throws Exception {
+        if (args.length > 3) {
+            String errorString = EscapeSequences.SET_TEXT_COLOR_RED + "ERROR: ";
+            errorString += EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + " You gave too many arguments. \n";
+            errorString += "To login, please provide your registered <USERNAME> <PASSWORD>, each separated by spaces.";
+            return errorString;
+        } else if (args.length < 3) {
+            String errorString = EscapeSequences.SET_TEXT_COLOR_RED + "ERROR: ";
+            errorString += EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + " You did not give enough arguments. \n";
+            errorString += "To register, please provide your registered <USERNAME> <PASSWORD>, each separated by spaces.";
+            return errorString;
+        }
+        String username = args[1];
+        String password = args[2];
+        LoginRequest loginRequest = new LoginRequest(username, password);
+        LoginResponse response = serverFacade.login(loginRequest);
+        String returnString = EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully logged in! Welcome ";
+        returnString += EscapeSequences.SET_TEXT_BOLD + response.username();
+        returnString += EscapeSequences.RESET_TEXT_BOLD_FAINT + "!";
+        PostloginUI postloginUI = new PostloginUI(serverFacade, response.authToken());
+        changeUITo(postloginUI);
         return returnString;
     }
 

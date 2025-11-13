@@ -4,8 +4,12 @@ import serverfacade.ServerFacade;
 
 public class PostloginUI extends ClientUI {
 
-    public PostloginUI(ServerFacade serverFacade) {
+    private final String authToken;
+
+    public PostloginUI(ServerFacade serverFacade, String authToken) {
         super(serverFacade, "LOGGED IN");
+
+        this.authToken = authToken;
     }
 
     @Override

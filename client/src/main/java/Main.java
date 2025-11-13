@@ -1,5 +1,5 @@
 import serverfacade.ServerFacade;
-import ui.PregameUI;
+import ui.PreloginUI;
 
 public class Main {
 
@@ -9,7 +9,7 @@ public class Main {
         try {
             String serverUrl = "http://localhost:8080";
             ServerFacade serverFacade = new ServerFacade(serverUrl);
-            PregameUI pregameUI = new PregameUI(serverFacade);
+            PreloginUI pregameUI = new PreloginUI(serverFacade);
             pregameUI.run();
         } catch (Exception ex) {
             System.out.printf("Unable to open server: %s%n", ex.getMessage());

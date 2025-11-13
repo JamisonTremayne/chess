@@ -6,7 +6,8 @@ import java.util.Scanner;
 
 public abstract class ClientUI {
 
-    private String statusMessage;
+    private final String statusMessage;
+    private ClientUI toUI = null;
     public boolean quit = false;
     public ServerFacade serverFacade;
 
@@ -28,6 +29,14 @@ public abstract class ClientUI {
             System.out.println(result);
             System.out.println(resetString);
         }
+        if (toUI != null) {
+            toUI.run();
+        }
+    }
+
+    public void changeUITo(ClientUI toUI) {
+        quit = true;
+        this.toUI = toUI;
     }
 
     public abstract String parseCommand(String command) throws Exception;

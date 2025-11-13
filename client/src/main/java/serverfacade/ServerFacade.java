@@ -23,37 +23,37 @@ public class ServerFacade {
     }
 
     public LoginResponse register(UserData userData) throws RequestException {
-        HttpRequest request = buildRequest("POST", "user", userData);
+        HttpRequest request = buildRequest("POST", "/user", userData);
         HttpResponse<String> response = sendRequest(request);
         return handleResponse(response, LoginResponse.class);
     }
 
     public LoginResponse login(LoginRequest loginRequest) throws RequestException {
-        HttpRequest request = buildRequest("POST", "session", loginRequest);
+        HttpRequest request = buildRequest("POST", "/session", loginRequest);
         HttpResponse<String> response = sendRequest(request);
         return handleResponse(response, LoginResponse.class);
     }
 
     public void logout(LogoutRequest logoutRequest) throws RequestException {
-        HttpRequest request = buildRequest("DELETE", "session", logoutRequest);
+        HttpRequest request = buildRequest("DELETE", "/session", logoutRequest);
         HttpResponse<String> response = sendRequest(request);
         handleResponse(response, null);
     }
 
     public ListGamesResponse listGames(ListGamesRequest listGamesRequest) throws RequestException {
-        HttpRequest request = buildRequest("GET", "game", listGamesRequest);
+        HttpRequest request = buildRequest("GET", "/game", listGamesRequest);
         HttpResponse<String> response = sendRequest(request);
         return handleResponse(response, ListGamesResponse.class);
     }
 
     public CreateGameResponse createGame(CreateGameRequest createGameRequest) throws RequestException {
-        HttpRequest request = buildRequest("POST", "game", createGameRequest);
+        HttpRequest request = buildRequest("POST", "/game", createGameRequest);
         HttpResponse<String> response = sendRequest(request);
         return handleResponse(response, CreateGameResponse.class);
     }
 
     public void joinGame(JoinGameRequest joinGameRequest) throws RequestException {
-        HttpRequest request = buildRequest("PUT", "game", joinGameRequest);
+        HttpRequest request = buildRequest("PUT", "/game", joinGameRequest);
         HttpResponse<String> response = sendRequest(request);
         handleResponse(response, null);
     }

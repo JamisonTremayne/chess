@@ -1,14 +1,16 @@
 package ui;
 
+import datamodel.UserData;
+import response.LoginResponse;
 import serverfacade.ServerFacade;
 
 import java.util.Random;
 
-public class PregameUI extends ClientUI {
+public class PreloginUI extends ClientUI {
 
     private final String[] quitStrings = new String[7];
 
-    public PregameUI(ServerFacade serverFacade) {
+    public PreloginUI(ServerFacade serverFacade) {
         super(serverFacade, "LOGGED OUT");
 
         quitStrings[0] = "I am so sad rn :(";
@@ -31,9 +33,9 @@ public class PregameUI extends ClientUI {
             case "help" -> {
                 return help();
             } case "register" -> {
-                return register();
+                return register(commandWords);
             } case "login" -> {
-                return login();
+                return login(commandWords);
             } case "quit" -> {
                 return quit();
             } default -> {
@@ -64,12 +66,32 @@ public class PregameUI extends ClientUI {
         return helpString;
     }
 
-    private String register() {
-        String returnString = "";
+    private String register(String[] args) throws Exception {
+        if (args.length > 4) {
+            String errorString = EscapeSequences.SET_TEXT_COLOR_RED + "ERROR: ";
+            errorString += EscapeSequences.RESET_TEXT_COLOR + " You gave too many arguments. \n";
+            errorString += "To register, please give <USERNAME> <PASSWORD> <EMAIL>, each separated by spaces.";
+            return errorString;
+        } else if (args.length < 4) {
+            String errorString = EscapeSequences.SET_TEXT_COLOR_RED + "ERROR: ";
+            errorString += EscapeSequences.RESET_TEXT_COLOR + " You did not give enough arguments. \n";
+            errorString += "To register, please give <USERNAME> <PASSWORD> <EMAIL>, each separated by spaces.";
+            return errorString;
+        }
+        String username = args[1];
+        String password = args[2];
+        String email = args[3];
+        UserData userData = new UserData(username, password, email);
+        LoginResponse response = serverFacade.register(userData);
+        String returnString = EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully registered and logged in as ";
+        returnString += EscapeSequences.SET_TEXT_BOLD + response.username();
+        returnString += EscapeSequences.RESET_TEXT_BOLD_FAINT + "!";
+        PostloginUI postloginUI = new PostloginUI(serverFacade);
+        changeUITo(postloginUI);
         return returnString;
     }
 
-    private String login() {
+    private String login(String[] args) {
         String returnString = "";
         return returnString;
     }

@@ -13,7 +13,7 @@ public class ServerFacadeTests {
 
     private static Server server;
     private static ServerFacade serverFacade;
-    private static String serverUrl = "http://localhost:8080";
+    private static String serverUrl = "http://localhost:0";
     private static UserData goodUser = new UserData("bill", "w", "a");
     private static UserData badUser = new UserData(null, null, null);
 

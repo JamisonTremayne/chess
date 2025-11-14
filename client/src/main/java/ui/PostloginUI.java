@@ -139,16 +139,45 @@ public class PostloginUI extends ClientUI {
                     """);
         }
         ChessGame.TeamColor team = (teamString.equals("white") ? ChessGame.TeamColor.WHITE: ChessGame.TeamColor.BLACK);
-        int id = gameMap.get(Integer.parseInt(args[1]));
+        Integer id = gameMap.get(Integer.parseInt(args[1]));
+        if (id == null) {
+            return formatError("""
+                    Invalid game ID given.
+                    Please type a valid number to join as the game's ID.
+                    To get a GAME ID, type list to get currently available games, or type create <GAME NAME> to create a new game.
+                    """);
+        }
         JoinGameRequest request = new JoinGameRequest(team, id, authToken);
         serverFacade.joinGame(request);
         String responseString = EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully joined game ";
         responseString += args[1] + " as " + teamString.toUpperCase() + "!";
-        changeUITo(new GameplayUI(serverFacade, team));
+        changeUITo(new GameplayUI(serverFacade, id, team));
         return responseString;
     }
 
     private String observeGame(String[] args) {
-        return "";
+        if (args.length < 2) {
+            return formatError("""
+                    You did not give enough arguments.
+                    To observe a game, please give the <GAME ID>.
+                    To get a GAME ID, type list to get currently available games, or type create <GAME NAME> to create a new game.
+                    """);
+        } else if (args.length > 2) {
+            return formatError("""
+                    You gave too many arguments.
+                    To observe a game, please give the <GAME ID>.
+                    To get a GAME ID, type list to get currently available games, or type create <GAME NAME> to create a new game.
+                    """);
+        }
+        Integer id = gameMap.get(Integer.parseInt(args[1]));
+        if (id == null) {
+            return formatError("""
+                    Invalid game ID given.
+                    Please type a valid number to join as the game's ID.
+                    To get a GAME ID, type list to get currently available games, or type create <GAME NAME> to create a new game.
+                    """);
+        }
+        changeUITo(new GameplayUI(serverFacade, id, null));
+        return EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully observing game " + args[1] + "!";
     }
 }

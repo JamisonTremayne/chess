@@ -42,8 +42,8 @@ public class GameService {
             throw gameUnauthorizedEx;
         }
         int gameID = gameCounter++;
-        if (dataAccess.getGame(gameID) != null) {
-            throw gameBadRequestEx;
+        while (dataAccess.getGame(gameID) != null) {
+            gameID = gameCounter++;
         }
         GameData newGame = new GameData(gameID, null, null, createGameRequest.gameName(), new ChessGame());
         dataAccess.createGame(newGame);

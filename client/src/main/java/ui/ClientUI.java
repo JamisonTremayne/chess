@@ -92,6 +92,11 @@ public abstract class ClientUI {
                             An account with this username already exists!
                             Try creating your account with another username.
                             """;
+                } else if (commandHead.equals("join") || commandHead.equals("join_game") || commandHead.equals("joingame")) {
+                    return """
+                            A user is already playing as that color in that game!
+                            Try joining the other team, joining as an observer, or joining a different game.
+                            """;
                 }
                 return "Input data is already taken.";
             } default -> {

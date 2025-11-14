@@ -7,7 +7,6 @@ import request.CreateGameRequest;
 import request.JoinGameRequest;
 import request.ListGamesRequest;
 import request.LogoutRequest;
-import response.CreateGameResponse;
 import response.ListGamesResponse;
 import serverfacade.ServerFacade;
 
@@ -16,7 +15,7 @@ import java.util.Objects;
 
 public class PostloginUI extends ClientUI {
 
-    private HashMap<Integer, Integer> gameMap = new HashMap<>();
+    private final HashMap<Integer, Integer> gameMap = new HashMap<>();
     private final String authToken;
 
     public PostloginUI(ServerFacade serverFacade, String authToken) {
@@ -80,7 +79,7 @@ public class PostloginUI extends ClientUI {
                     """);
         }
         CreateGameRequest createGameRequest = new CreateGameRequest(args[1], authToken);
-        CreateGameResponse response = serverFacade.createGame(createGameRequest);
+        serverFacade.createGame(createGameRequest);
         String responseString = EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully created a new game!\n";
         responseString += EscapeSequences.SET_TEXT_COLOR_BLUE + "Type ";
         responseString += EscapeSequences.SET_TEXT_ITALIC + "list" + EscapeSequences.RESET_TEXT_ITALIC;
@@ -157,7 +156,7 @@ public class PostloginUI extends ClientUI {
             serverFacade.joinGame(request);
             String responseString = EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully joined game ";
             responseString += args[1] + " as " + teamString.toUpperCase() + "!";
-            changeUITo(new GameplayUI(serverFacade, id, team));
+            changeUITo(new GameplayUI(serverFacade, authToken, id, team));
             return responseString;
         } catch (NumberFormatException ex) {
             return formatError("""
@@ -191,7 +190,7 @@ public class PostloginUI extends ClientUI {
                         To get a GAME ID, type list to get currently available games, or type create <GAME NAME> to create a new game.
                         """);
             }
-            changeUITo(new GameplayUI(serverFacade, id, null));
+            changeUITo(new GameplayUI(serverFacade, authToken, id, null));
             return EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully observing game " + args[1] + "!";
         } catch (NumberFormatException ex) {
             return formatError("""
@@ -204,13 +203,11 @@ public class PostloginUI extends ClientUI {
 
     private String clampString(String string, int length) {
         if (string == null) {
-            return string;
+            return null;
         }
         int currLength = string.length();
         if (currLength < length) {
-            StringBuilder newString = new StringBuilder(string);
-            newString.append(" ".repeat(length - currLength));
-            return newString.toString();
+            return string + " ".repeat(length - currLength);
         } else {
             String newString = string.substring(0, length - 3);
             newString += "...";

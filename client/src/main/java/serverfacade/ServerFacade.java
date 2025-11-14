@@ -64,6 +64,12 @@ public class ServerFacade {
         handleResponse(response, null);
     }
 
+    public void clear() throws RequestException {
+        HttpRequest request = buildRequest("DELETE", "/db", null);
+        HttpResponse<String> response = sendRequest(request);
+        handleResponse(response, null);
+    }
+
     private HttpRequest buildRequest(String method, String path, Object body) {
         Builder request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))

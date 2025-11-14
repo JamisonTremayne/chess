@@ -8,11 +8,13 @@ import serverfacade.ServerFacade;
 
 public class GameplayUI extends ClientUI {
 
+    private final String authToken;
     private final ChessGame.TeamColor teamColor;
     private final int gameID;
 
-    public GameplayUI(ServerFacade serverFacade, int gameID, ChessGame.TeamColor teamColor) {
+    public GameplayUI(ServerFacade serverFacade, String authToken, int gameID, ChessGame.TeamColor teamColor) {
         super(serverFacade, "IN-GAME");
+        this.authToken = authToken;
         this.gameID = gameID;
         this.teamColor = teamColor;
 
@@ -21,12 +23,33 @@ public class GameplayUI extends ClientUI {
 
     @Override
     public String parseCommand(String command) throws Exception {
-        return "";
+        String[] commandWords = command.split(" ");
+        if (commandWords.length == 0) {
+            throw new Exception();
+        }
+        String commandHead = commandWords[0].toLowerCase(); //NOT CASE SENSITIVE
+        switch (commandHead) {
+            case "help" -> {
+                return help();
+            } case "leave" -> {
+                return leave();
+            } default -> {
+                return invalidCommand(commandHead);
+            }
+        }
     }
 
     @Override
     public String help() {
-        return "";
+        String helpString = "";
+        helpString += formatHelp("help", "List available commands.");
+        helpString += formatHelp("leave", "Leave your current game.");
+        return helpString;
+    }
+
+    private String leave() {
+        changeUITo(new PostloginUI(serverFacade, authToken));
+        return EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully left the game.";
     }
 
     private void displayBoard() {
@@ -40,18 +63,18 @@ public class GameplayUI extends ClientUI {
                 String ln;
                 if (i == 0 || i == 9) {
                     switch (j) {
-                        case 8 -> ln = formatBorder() + " A ";
-                        case 7 -> ln = formatBorder() + "  B ";
-                        case 6 -> ln = formatBorder() + " C ";
-                        case 5 -> ln = formatBorder() + "  D ";
-                        case 4 -> ln = formatBorder() + "  E ";
-                        case 3 -> ln = formatBorder() + " F ";
-                        case 2 -> ln = formatBorder() + "  G ";
-                        case 1 -> ln = formatBorder() + " H ";
-                        default -> ln = formatBorder() + "   ";
+                        case 8 -> ln = formatBorder() + EscapeSequences.EMPTY + "A ";
+                        case 7 -> ln = formatBorder() + EscapeSequences.EMPTY + "B ";
+                        case 6 -> ln = formatBorder() + EscapeSequences.EMPTY + "C ";
+                        case 5 -> ln = formatBorder() + EscapeSequences.EMPTY + "D ";
+                        case 4 -> ln = formatBorder() + EscapeSequences.EMPTY + "E ";
+                        case 3 -> ln = formatBorder() + EscapeSequences.EMPTY + "F ";
+                        case 2 -> ln = formatBorder() + EscapeSequences.EMPTY + "G ";
+                        case 1 -> ln = formatBorder() + EscapeSequences.EMPTY + "H ";
+                        default -> ln = formatBorder() + EscapeSequences.EMPTY + "  ";
                     }
                 } else if (j == 0 || j == 9) {
-                    ln = formatBorder() + " " + i + " ";
+                    ln = formatBorder() + EscapeSequences.EMPTY + i + " ";
                 } else {
                     int square = (i + j) % 2;
                     if (square == 1) {
@@ -73,10 +96,10 @@ public class GameplayUI extends ClientUI {
                             case ChessPiece.PieceType.BISHOP -> ln += EscapeSequences.BLACK_BISHOP;
                             case ChessPiece.PieceType.KNIGHT -> ln += EscapeSequences.BLACK_KNIGHT;
                             case ChessPiece.PieceType.ROOK -> ln += EscapeSequences.BLACK_ROOK;
-                            default -> ln += EscapeSequences.EMPTY;
+                            default -> ln += EscapeSequences.EMPTY + "  ";
                         }
                     } else {
-                        ln += EscapeSequences.EMPTY;
+                        ln += EscapeSequences.EMPTY + "  ";
                     }
                 }
                 System.out.print(ln);

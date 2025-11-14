@@ -13,7 +13,7 @@ public class ServerFacadeTests {
 
     private static Server server;
     private static ServerFacade serverFacade;
-    private static String serverUrl = "http://localhost:0";
+    private static String serverUrl = "http://localhost:";
     private static UserData goodUser = new UserData("bill", "w", "a");
     private static UserData badUser = new UserData(null, null, null);
 
@@ -22,7 +22,7 @@ public class ServerFacadeTests {
         server = new Server();
         var port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
-        serverFacade = new ServerFacade(serverUrl);
+        serverFacade = new ServerFacade(serverUrl + port);
     }
 
     @BeforeEach

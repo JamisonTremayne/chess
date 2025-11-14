@@ -7,7 +7,7 @@ public class Main {
         System.out.println("♕ Welcome to Jamison's 240 Chess Client! Type Help to get started!");
 
         try {
-            String serverUrl = "http://localhost:8080";
+            String serverUrl = "http://localhost:0";
             ServerFacade serverFacade = new ServerFacade(serverUrl);
             PreloginUI pregameUI = new PreloginUI(serverFacade);
             pregameUI.run();

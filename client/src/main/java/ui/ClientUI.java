@@ -16,7 +16,7 @@ public abstract class ClientUI {
         this.serverFacade = serverFacade;
     }
 
-    private static final String resetString = EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT
+    private static final String RESET_STRING = EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT
             + EscapeSequences.RESET_TEXT_BLINKING + EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_TEXT_ITALIC
             + EscapeSequences.RESET_TEXT_UNDERLINE;
 
@@ -31,7 +31,7 @@ public abstract class ClientUI {
             } catch (RequestException ex) {
                 System.out.println(formatError(handleExceptions(ex, command)));
             }
-                System.out.print(resetString);
+                System.out.print(RESET_STRING);
         }
         if (toUI != null) {
             toUI.run();

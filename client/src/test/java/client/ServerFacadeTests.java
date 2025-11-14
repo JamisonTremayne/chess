@@ -117,7 +117,8 @@ public class ServerFacadeTests {
     public void joinGameSuccess() throws Exception {
         LoginResponse response = serverFacade.register(goodUser);
         CreateGameResponse gameResponse = serverFacade.createGame(new CreateGameRequest("game", response.authToken()));
-        Assertions.assertDoesNotThrow(() -> serverFacade.joinGame(new JoinGameRequest(ChessGame.TeamColor.WHITE, gameResponse.gameID(), response.authToken())));
+        JoinGameRequest request = new JoinGameRequest(ChessGame.TeamColor.WHITE, gameResponse.gameID(), response.authToken());
+        Assertions.assertDoesNotThrow(() -> serverFacade.joinGame(request));
     }
 
     @Test
@@ -125,8 +126,10 @@ public class ServerFacadeTests {
         LoginResponse response = serverFacade.register(goodUser);
         CreateGameResponse gameResponse = serverFacade.createGame(new CreateGameRequest("game", response.authToken()));
         Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(null));
-        Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(new JoinGameRequest(ChessGame.TeamColor.WHITE, -10, response.authToken())));
-        Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(new JoinGameRequest(ChessGame.TeamColor.WHITE, gameResponse.gameID(), "what?")));
+        JoinGameRequest requestOne = new JoinGameRequest(ChessGame.TeamColor.WHITE, -10, response.authToken());
+        Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(requestOne));
+        JoinGameRequest requestTwo = new JoinGameRequest(ChessGame.TeamColor.WHITE, gameResponse.gameID(), "what?");
+        Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(requestTwo));
 
     }
 }

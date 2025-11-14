@@ -83,23 +83,24 @@ public class GameplayUI extends ClientUI {
                         ln = formatLightSquare();
                     }
                     ChessPiece piece = board.getPiece(new ChessPosition(i, j));
-                    if (piece != null) {
-                        if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-                            ln += formatWhite();
-                        } else {
-                            ln += formatBlack();
-                        }
-                        switch (piece.getPieceType()) {
-                            case ChessPiece.PieceType.PAWN -> ln += EscapeSequences.BLACK_PAWN;
-                            case ChessPiece.PieceType.KING -> ln += EscapeSequences.BLACK_KING;
-                            case ChessPiece.PieceType.QUEEN -> ln += EscapeSequences.BLACK_QUEEN;
-                            case ChessPiece.PieceType.BISHOP -> ln += EscapeSequences.BLACK_BISHOP;
-                            case ChessPiece.PieceType.KNIGHT -> ln += EscapeSequences.BLACK_KNIGHT;
-                            case ChessPiece.PieceType.ROOK -> ln += EscapeSequences.BLACK_ROOK;
-                            default -> ln += EscapeSequences.EMPTY + "  ";
-                        }
-                    } else {
+                    if (piece == null) {
                         ln += EscapeSequences.EMPTY + "  ";
+                        System.out.print(ln);
+                        continue;
+                    }
+                    if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                        ln += formatWhite();
+                    } else {
+                        ln += formatBlack();
+                    }
+                    switch (piece.getPieceType()) {
+                        case ChessPiece.PieceType.PAWN -> ln += EscapeSequences.BLACK_PAWN;
+                        case ChessPiece.PieceType.KING -> ln += EscapeSequences.BLACK_KING;
+                        case ChessPiece.PieceType.QUEEN -> ln += EscapeSequences.BLACK_QUEEN;
+                        case ChessPiece.PieceType.BISHOP -> ln += EscapeSequences.BLACK_BISHOP;
+                        case ChessPiece.PieceType.KNIGHT -> ln += EscapeSequences.BLACK_KNIGHT;
+                        case ChessPiece.PieceType.ROOK -> ln += EscapeSequences.BLACK_ROOK;
+                        default -> ln += EscapeSequences.EMPTY + "  ";
                     }
                 }
                 System.out.print(ln);

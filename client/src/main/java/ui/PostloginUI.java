@@ -93,6 +93,8 @@ public class PostloginUI extends ClientUI {
         ListGamesResponse response = serverFacade.listGames(request);
         gameMap.clear();
         int counter = 0;
+        final int gameNameLength = 24;
+        final int playerNameLength = 16;
         StringBuilder responseString = new StringBuilder(EscapeSequences.SET_TEXT_COLOR_GREEN + EscapeSequences.SET_TEXT_BOLD);
         responseString.append("Found ").append(response.games().size()).append(" available games:\n");
         responseString.append(EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.RESET_TEXT_BOLD_FAINT);
@@ -100,15 +102,18 @@ public class PostloginUI extends ClientUI {
             counter++;
             gameMap.put(counter, game.gameID());
             responseString.append("     ").append(counter).append(" - ");
-            responseString.append("Game Name: ").append(game.gameName());
-            String whiteUser = game.whiteUsername();
+
+            responseString.append("Game Name: ").append(clampString(game.gameName(), gameNameLength));
+            String whiteUser = clampString(game.whiteUsername(), playerNameLength);
             if (whiteUser == null) {
-                whiteUser = EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + "None" + EscapeSequences.SET_TEXT_COLOR_BLUE;
+                whiteUser = EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
+                        clampString("None", playerNameLength) + EscapeSequences.SET_TEXT_COLOR_BLUE;
             }
             responseString.append(", White Player: ").append(whiteUser);
-            String blackUser = game.blackUsername();
+            String blackUser = clampString(game.blackUsername(), playerNameLength);
             if (blackUser == null) {
-                blackUser = EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + "None" + EscapeSequences.SET_TEXT_COLOR_BLUE;
+                blackUser = EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
+                        clampString("None", playerNameLength) + EscapeSequences.SET_TEXT_COLOR_BLUE;
             }
             responseString.append(", Black Player: ").append(blackUser);
             responseString.append("\n");
@@ -139,20 +144,28 @@ public class PostloginUI extends ClientUI {
                     """);
         }
         ChessGame.TeamColor team = (teamString.equals("white") ? ChessGame.TeamColor.WHITE: ChessGame.TeamColor.BLACK);
-        Integer id = gameMap.get(Integer.parseInt(args[1]));
-        if (id == null) {
+        try {
+            Integer id = gameMap.get(Integer.parseInt(args[1]));
+            if (id == null) {
+                return formatError("""
+                        Invalid game ID given.
+                        Please type a valid number to join as the game's ID.
+                        To get a GAME ID, type list to get currently available games, or type create <GAME NAME> to create a new game.
+                        """);
+            }
+            JoinGameRequest request = new JoinGameRequest(team, id, authToken);
+            serverFacade.joinGame(request);
+            String responseString = EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully joined game ";
+            responseString += args[1] + " as " + teamString.toUpperCase() + "!";
+            changeUITo(new GameplayUI(serverFacade, id, team));
+            return responseString;
+        } catch (NumberFormatException ex) {
             return formatError("""
                     Invalid game ID given.
                     Please type a valid number to join as the game's ID.
                     To get a GAME ID, type list to get currently available games, or type create <GAME NAME> to create a new game.
                     """);
         }
-        JoinGameRequest request = new JoinGameRequest(team, id, authToken);
-        serverFacade.joinGame(request);
-        String responseString = EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully joined game ";
-        responseString += args[1] + " as " + teamString.toUpperCase() + "!";
-        changeUITo(new GameplayUI(serverFacade, id, team));
-        return responseString;
     }
 
     private String observeGame(String[] args) {
@@ -169,15 +182,39 @@ public class PostloginUI extends ClientUI {
                     To get a GAME ID, type list to get currently available games, or type create <GAME NAME> to create a new game.
                     """);
         }
-        Integer id = gameMap.get(Integer.parseInt(args[1]));
-        if (id == null) {
+        try {
+            Integer id = gameMap.get(Integer.parseInt(args[1]));
+            if (id == null) {
+                return formatError("""
+                        Invalid game ID given.
+                        Please type a valid number to join as the game's ID.
+                        To get a GAME ID, type list to get currently available games, or type create <GAME NAME> to create a new game.
+                        """);
+            }
+            changeUITo(new GameplayUI(serverFacade, id, null));
+            return EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully observing game " + args[1] + "!";
+        } catch (NumberFormatException ex) {
             return formatError("""
-                    Invalid game ID given.
-                    Please type a valid number to join as the game's ID.
-                    To get a GAME ID, type list to get currently available games, or type create <GAME NAME> to create a new game.
-                    """);
+                        Invalid game ID given.
+                        Please type a valid number to join as the game's ID.
+                        To get a GAME ID, type list to get currently available games, or type create <GAME NAME> to create a new game.
+                        """);
         }
-        changeUITo(new GameplayUI(serverFacade, id, null));
-        return EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully observing game " + args[1] + "!";
+    }
+
+    private String clampString(String string, int length) {
+        if (string == null) {
+            return string;
+        }
+        int currLength = string.length();
+        if (currLength < length) {
+            StringBuilder newString = new StringBuilder(string);
+            newString.append(" ".repeat(length - currLength));
+            return newString.toString();
+        } else {
+            String newString = string.substring(0, length - 3);
+            newString += "...";
+            return newString;
+        }
     }
 }

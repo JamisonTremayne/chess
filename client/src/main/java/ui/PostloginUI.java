@@ -1,16 +1,22 @@
 package ui;
 
+import chess.ChessGame;
 import datamodel.GameData;
 import exception.RequestException;
 import request.CreateGameRequest;
+import request.JoinGameRequest;
 import request.ListGamesRequest;
 import request.LogoutRequest;
 import response.CreateGameResponse;
 import response.ListGamesResponse;
 import serverfacade.ServerFacade;
 
+import java.util.HashMap;
+import java.util.Objects;
+
 public class PostloginUI extends ClientUI {
 
+    private HashMap<Integer, Integer> gameMap = new HashMap<>();
     private final String authToken;
 
     public PostloginUI(ServerFacade serverFacade, String authToken) {
@@ -75,21 +81,26 @@ public class PostloginUI extends ClientUI {
         }
         CreateGameRequest createGameRequest = new CreateGameRequest(args[1], authToken);
         CreateGameResponse response = serverFacade.createGame(createGameRequest);
-        String responseString = EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully created a new game: \n";
-        responseString += EscapeSequences.SET_TEXT_COLOR_BLUE + "Game Name: " + args[1];
-        responseString += ", Game ID: " + response.gameID();
+        String responseString = EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully created a new game!\n";
+        responseString += EscapeSequences.SET_TEXT_COLOR_BLUE + "Type ";
+        responseString += EscapeSequences.SET_TEXT_ITALIC + "list" + EscapeSequences.RESET_TEXT_ITALIC;
+        responseString += " to find the number for your game to join!";
         return responseString;
     }
 
     private String listGames() throws RequestException {
         ListGamesRequest request = new ListGamesRequest(authToken);
         ListGamesResponse response = serverFacade.listGames(request);
+        gameMap.clear();
+        int counter = 0;
         StringBuilder responseString = new StringBuilder(EscapeSequences.SET_TEXT_COLOR_GREEN + EscapeSequences.SET_TEXT_BOLD);
         responseString.append("Found ").append(response.games().size()).append(" available games:\n");
         responseString.append(EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.RESET_TEXT_BOLD_FAINT);
         for (GameData game : response.games()) {
-            responseString.append("     - Game Name: ").append(game.gameName());
-            responseString.append(", ID: ").append(game.gameID());
+            counter++;
+            gameMap.put(counter, game.gameID());
+            responseString.append("     ").append(counter).append(" - ");
+            responseString.append("Game Name: ").append(game.gameName());
             String whiteUser = game.whiteUsername();
             if (whiteUser == null) {
                 whiteUser = EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY + "None" + EscapeSequences.SET_TEXT_COLOR_BLUE;
@@ -106,8 +117,35 @@ public class PostloginUI extends ClientUI {
         return responseString.toString();
     }
 
-    private String joinGame(String[] args) {
-        return "";
+    private String joinGame(String[] args) throws RequestException {
+        if (args.length < 3) {
+            return formatError("""
+                    You did not give enough arguments.
+                    To join a game, please give the <GAME ID> and TEAM (WHITE or BLACK), separated by spaces.
+                    To get a GAME ID, type list to get currently available games, or type create <GAME NAME> to create a new game.
+                    """);
+        } else if (args.length > 3) {
+            return formatError("""
+                    You gave too many arguments.
+                    To join a game, please give the <GAME ID> and TEAM (WHITE or BLACK), separated by spaces.
+                    To get a GAME ID, type list to get currently available games, or type create <GAME NAME> to create a new game.
+                    """);
+        }
+        String teamString = args[2].toLowerCase();
+        if (!Objects.equals(teamString, "white") && !Objects.equals(teamString, "black")) {
+            return formatError("""
+                    Invalid team name given.
+                    Please type either WHITE or BLACK to join the specified team.
+                    """);
+        }
+        ChessGame.TeamColor team = (teamString.equals("white") ? ChessGame.TeamColor.WHITE: ChessGame.TeamColor.BLACK);
+        int id = gameMap.get(Integer.parseInt(args[1]));
+        JoinGameRequest request = new JoinGameRequest(team, id, authToken);
+        serverFacade.joinGame(request);
+        String responseString = EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully joined game ";
+        responseString += args[1] + " as " + teamString.toUpperCase() + "!";
+        changeUITo(new GameplayUI(serverFacade, team));
+        return responseString;
     }
 
     private String observeGame(String[] args) {

@@ -2,7 +2,6 @@ package ui;
 
 import exception.RequestException;
 import serverfacade.ServerFacade;
-
 import java.util.Scanner;
 
 public abstract class ClientUI {

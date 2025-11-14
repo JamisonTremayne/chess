@@ -20,7 +20,7 @@ public class ServerFacadeTests {
     @BeforeAll
     public static void init() throws Exception {
         server = new Server();
-        var port = server.run(0);
+        var port = server.run(8080);
         System.out.println("Started test HTTP server on " + port);
         serverFacade = new ServerFacade(serverUrl);
     }

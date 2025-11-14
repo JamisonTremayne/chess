@@ -56,28 +56,30 @@ public class GameplayUI extends ClientUI {
         // HARD-CODE DISPLAY GAME
         ChessGame game = new ChessGame();
         ChessBoard board = game.getBoard();
-        int start = teamColor == ChessGame.TeamColor.BLACK? 0: 9;
-        int increment = teamColor == ChessGame.TeamColor.BLACK? 1: -1;
-        for (int i = start; i < 10 && i >= 0; i += increment) {
-            for (int j = start; j < 10 && j >= 0; j += increment) {
+        int startI = teamColor == ChessGame.TeamColor.BLACK? 0: 9;
+        int startJ = teamColor == ChessGame.TeamColor.BLACK? 9: 0;
+        int incrementI = teamColor == ChessGame.TeamColor.BLACK? 1: -1;
+        int incrementJ = teamColor == ChessGame.TeamColor.BLACK? -1: 1;
+        for (int i = startI; i < 10 && i >= 0; i += incrementI) {
+            for (int j = startJ; j < 10 && j >= 0; j += incrementJ) {
                 String ln;
                 if (i == 0 || i == 9) {
                     switch (j) {
-                        case 8 -> ln = formatBorder() + EscapeSequences.EMPTY + "A ";
-                        case 7 -> ln = formatBorder() + EscapeSequences.EMPTY + "B ";
-                        case 6 -> ln = formatBorder() + EscapeSequences.EMPTY + "C ";
-                        case 5 -> ln = formatBorder() + EscapeSequences.EMPTY + "D ";
-                        case 4 -> ln = formatBorder() + EscapeSequences.EMPTY + "E ";
-                        case 3 -> ln = formatBorder() + EscapeSequences.EMPTY + "F ";
-                        case 2 -> ln = formatBorder() + EscapeSequences.EMPTY + "G ";
-                        case 1 -> ln = formatBorder() + EscapeSequences.EMPTY + "H ";
+                        case 1 -> ln = formatBorder() + EscapeSequences.EMPTY + "A ";
+                        case 2 -> ln = formatBorder() + EscapeSequences.EMPTY + "B ";
+                        case 3 -> ln = formatBorder() + EscapeSequences.EMPTY + "C ";
+                        case 4 -> ln = formatBorder() + EscapeSequences.EMPTY + "D ";
+                        case 5 -> ln = formatBorder() + EscapeSequences.EMPTY + "E ";
+                        case 6 -> ln = formatBorder() + EscapeSequences.EMPTY + "F ";
+                        case 7 -> ln = formatBorder() + EscapeSequences.EMPTY + "G ";
+                        case 8 -> ln = formatBorder() + EscapeSequences.EMPTY + "H ";
                         default -> ln = formatBorder() + EscapeSequences.EMPTY + "  ";
                     }
                 } else if (j == 0 || j == 9) {
                     ln = formatBorder() + EscapeSequences.EMPTY + i + " ";
                 } else {
                     int square = (i + j) % 2;
-                    if (square == 1) {
+                    if (square == 0) {
                         ln = formatDarkSquare();
                     } else {
                         ln = formatLightSquare();

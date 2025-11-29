@@ -33,6 +33,14 @@ public class Server {
         server.get("game", this::listGamesHandler);
         server.post("game", this::createGameHandler);
         server.put("game", this::joinGameHandler);
+        server.ws("/ws", ws -> {
+            ws.onConnect(ctx -> {
+                ctx.enableAutomaticPings();
+                System.out.println("Websocket connected");
+            });
+            ws.onMessage(ctx -> ctx.send("WebSocket response:" + ctx.message()));
+            ws.onClose(_ -> System.out.println("Websocket closed"));
+        });
 
         userService = new UserService(dataAccess);
         gameService = new GameService(dataAccess);

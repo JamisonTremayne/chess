@@ -5,9 +5,12 @@ import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
 import serverfacade.ServerFacade;
+import serverfacade.WebsocketFacade;
+import websocket.messages.ServerMessage;
 
 public class GameplayUI extends ClientUI {
 
+    private final WebsocketFacade ws;
     private final String authToken;
     private final ChessGame.TeamColor teamColor;
     private final int gameID;
@@ -17,6 +20,8 @@ public class GameplayUI extends ClientUI {
         this.authToken = authToken;
         this.gameID = gameID;
         this.teamColor = teamColor;
+
+        ws = new WebsocketFacade(serverFacade.getServerUrl(), this);
 
         displayBoard();
     }
@@ -37,6 +42,10 @@ public class GameplayUI extends ClientUI {
                 return invalidCommand(commandHead);
             }
         }
+    }
+
+    public void printMessage(ServerMessage serverMessage) {
+
     }
 
     @Override

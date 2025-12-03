@@ -45,7 +45,8 @@ public class GameService {
         while (dataAccess.getGame(gameID) != null) {
             gameID = gameCounter++;
         }
-        GameData newGame = new GameData(gameID, null, null, createGameRequest.gameName(), new ChessGame());
+        GameData newGame = new GameData(gameID, null, null,
+                createGameRequest.gameName(), new ChessGame(), GameData.GameState.READY);
         dataAccess.createGame(newGame);
         return new CreateGameResponse(gameID);
     }
@@ -77,7 +78,11 @@ public class GameService {
                 blackUser = authData.username();
             }
         }
-        GameData updatedGame = new GameData(game.gameID(), whiteUser, blackUser, game.gameName(), game.game());
+        GameData.GameState state = game.state();
+        if (!(whiteUser == null || blackUser == null) && state == GameData.GameState.READY) {
+            state = GameData.GameState.IN_PROGRESS;
+        }
+        GameData updatedGame = new GameData(game.gameID(), whiteUser, blackUser, game.gameName(), game.game(), state);
         dataAccess.updateGame(request.gameID(), updatedGame);
     }
 }

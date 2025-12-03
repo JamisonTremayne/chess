@@ -115,10 +115,23 @@ public class PostloginUI extends ClientUI {
                         clampString("None", playerNameLength) + EscapeSequences.SET_TEXT_COLOR_BLUE;
             }
             responseString.append(", Black Player: ").append(blackUser);
+            responseString.append(", Status: ").append(stateToString(game.state()));
             responseString.append("\n");
         }
 
         return responseString.toString();
+    }
+
+    private String stateToString(GameData.GameState state) {
+        String returnString = "";
+        switch (state) {
+            case READY -> returnString += EscapeSequences.SET_TEXT_COLOR_GREEN + "READY";
+            case IN_PROGRESS -> returnString += EscapeSequences.SET_TEXT_COLOR_YELLOW + "IN PROGRESS";
+            case UNFINISHED -> returnString += EscapeSequences.SET_TEXT_COLOR_RED + "UNFINISHED";
+            case COMPLETE -> returnString += EscapeSequences.SET_TEXT_COLOR_DARK_GREY + "COMPLETE";
+
+        }
+        return returnString + EscapeSequences.SET_TEXT_COLOR_BLUE;
     }
 
     private String joinGame(String[] args) throws RequestException {

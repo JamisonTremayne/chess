@@ -36,14 +36,14 @@ public class ServerFacade {
 
     public void logout(LogoutRequest logoutRequest) throws RequestException {
         HttpRequest request = buildRequest("DELETE", "/session", null,
-                "authorization", logoutRequest.authToken());
+                logoutRequest.authToken());
         HttpResponse<String> response = sendRequest(request);
         handleResponse(response, null);
     }
 
     public ListGamesResponse listGames(ListGamesRequest listGamesRequest) throws RequestException {
         HttpRequest request = buildRequest("GET", "/game", null,
-                "authorization", listGamesRequest.authToken());
+                listGamesRequest.authToken());
         HttpResponse<String> response = sendRequest(request);
         return handleResponse(response, ListGamesResponse.class);
     }
@@ -51,7 +51,7 @@ public class ServerFacade {
     public CreateGameResponse createGame(CreateGameRequest createGameRequest) throws RequestException {
         CreateGameRequestBody body = new CreateGameRequestBody(createGameRequest.gameName());
         HttpRequest request = buildRequest("POST", "/game", body,
-                "authorization", createGameRequest.authToken());
+                createGameRequest.authToken());
         HttpResponse<String> response = sendRequest(request);
         return handleResponse(response, CreateGameResponse.class);
     }
@@ -59,7 +59,7 @@ public class ServerFacade {
     public void joinGame(JoinGameRequest joinGameRequest) throws RequestException {
         JoinGameRequestBody body = new JoinGameRequestBody(joinGameRequest.playerColor(), joinGameRequest.gameID());
         HttpRequest request = buildRequest("PUT", "/game", body,
-                "authorization", joinGameRequest.authToken());
+                joinGameRequest.authToken());
         HttpResponse<String> response = sendRequest(request);
         handleResponse(response, null);
     }
@@ -70,6 +70,10 @@ public class ServerFacade {
         handleResponse(response, null);
     }
 
+    public String getServerUrl() {
+        return serverUrl;
+    }
+
     private HttpRequest buildRequest(String method, String path, Object body) {
         Builder request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
@@ -77,11 +81,11 @@ public class ServerFacade {
         return request.build();
     }
 
-    private HttpRequest buildRequest(String method, String path, Object body, String headerName, String header) {
+    private HttpRequest buildRequest(String method, String path, Object body, String header) {
         Builder request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .method(method, makeRequestBody(body))
-                .header(headerName, header);
+                .header("authorization", header);
         return request.build();
     }
 

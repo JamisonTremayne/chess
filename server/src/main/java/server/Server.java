@@ -15,6 +15,7 @@ public class Server {
     private final Javalin server;
     private final UserService userService;
     private final GameService gameService;
+    private final WebsocketHandler websocketHandler;
 
     public Server() {
         DataAccess dataAccess;
@@ -24,6 +25,11 @@ public class Server {
             System.out.println(ex.getMessage());
             dataAccess = new MemoryDataAccess();
         }
+
+        userService = new UserService(dataAccess);
+        gameService = new GameService(dataAccess);
+        websocketHandler = new WebsocketHandler(dataAccess);
+
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
         server.delete("db", this::clear);
@@ -35,15 +41,13 @@ public class Server {
         server.put("game", this::joinGameHandler);
         server.ws("/ws", ws -> {
             ws.onConnect(ctx -> {
-                ctx.enableAutomaticPings();
-                System.out.println("Websocket connected");
+                ws.onConnect(websocketHandler);
+                ws.onMessage(websocketHandler);
+                ws.onClose(websocketHandler);
             });
             ws.onMessage(ctx -> ctx.send("WebSocket response:" + ctx.message()));
             ws.onClose(_ -> System.out.println("Websocket closed"));
         });
-
-        userService = new UserService(dataAccess);
-        gameService = new GameService(dataAccess);
     }
 
     public int run(int desiredPort) {

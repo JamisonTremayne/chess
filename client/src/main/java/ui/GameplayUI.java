@@ -72,6 +72,7 @@ public class GameplayUI extends ClientUI {
     }
 
     private void displayBoard(ChessGame game) {
+        System.out.println();
         ChessBoard board = game.getBoard();
         int startI = teamColor == ChessGame.TeamColor.BLACK? 0: 9;
         int startJ = teamColor == ChessGame.TeamColor.BLACK? 9: 0;

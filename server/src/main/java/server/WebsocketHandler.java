@@ -267,7 +267,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     public void broadcast(Session excludeSession, ServerMessage serverMessage) {
         try {
-            String msg = serverMessage.getMessage();
+            String msg = serverMessage.toString();
             for (Session c : connections.values()) {
                 if (c.isOpen() && !c.equals(excludeSession)) {
                     c.getRemote().sendString(msg);
@@ -280,9 +280,8 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     public void directMessage(Session session, ServerMessage serverMessage) {
         try {
-            String msg = serverMessage.getMessage();
+            String msg = serverMessage.toString();
             if (session.isOpen()) {
-                System.out.println(msg);
                 session.getRemote().sendString(msg);
             }
         } catch (IOException ex) {

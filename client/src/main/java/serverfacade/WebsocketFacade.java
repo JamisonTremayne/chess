@@ -31,9 +31,12 @@ public class WebsocketFacade extends Endpoint {
             this.session = container.connectToServer(this, socketURI);
 
             //set message handler
-            this.session.addMessageHandler((MessageHandler.Whole<String>) message -> {
-                ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
-                client.handleMessage(serverMessage);
+            this.session.addMessageHandler(new MessageHandler.Whole<String>() {
+                @Override
+                public void onMessage(String message) {
+                    ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
+                    client.handleMessage(serverMessage);
+                }
             });
         } catch (DeploymentException | IOException | URISyntaxException ex) {
             String message = "Error: Something went wrong setting up the Websocket Facade.\n" + ex.getMessage();

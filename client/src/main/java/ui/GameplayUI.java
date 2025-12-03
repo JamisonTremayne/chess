@@ -4,6 +4,7 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
+import com.google.gson.Gson;
 import serverfacade.ServerFacade;
 import serverfacade.WebsocketFacade;
 import websocket.messages.ServerMessage;
@@ -22,8 +23,6 @@ public class GameplayUI extends ClientUI {
         this.teamColor = teamColor;
 
         ws = new WebsocketFacade(serverFacade.getServerUrl(), this);
-
-        displayBoard();
     }
 
     @Override
@@ -44,8 +43,16 @@ public class GameplayUI extends ClientUI {
         }
     }
 
-    public void printMessage(ServerMessage serverMessage) {
-
+    public void handleMessage(ServerMessage serverMessage) {
+        if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
+            String string = EscapeSequences.SET_TEXT_COLOR_GREEN + serverMessage.getMessage();
+            System.out.println(string + EscapeSequences.RESET_TEXT_COLOR);
+        } else if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.ERROR) {
+            System.out.println(formatError(serverMessage.getMessage()));
+        } else if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
+            ChessGame game = new Gson().fromJson(serverMessage.getMessage(), ChessGame.class);
+            displayBoard(game);
+        }
     }
 
     @Override
@@ -61,9 +68,7 @@ public class GameplayUI extends ClientUI {
         return EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully left the game.";
     }
 
-    private void displayBoard() {
-        // HARD-CODE DISPLAY GAME
-        ChessGame game = new ChessGame();
+    private void displayBoard(ChessGame game) {
         ChessBoard board = game.getBoard();
         int startI = teamColor == ChessGame.TeamColor.BLACK? 0: 9;
         int startJ = teamColor == ChessGame.TeamColor.BLACK? 9: 0;

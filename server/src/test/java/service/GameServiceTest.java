@@ -23,7 +23,8 @@ class GameServiceTest {
         String gameName = "my_game";
         CreateGameRequest createGameRequest = new CreateGameRequest(gameName, authData.authToken());
         CreateGameResponse response = gameService.createGame(createGameRequest);
-        var newGame = new GameData(response.gameID(), null, null, gameName, new ChessGame());
+        var newGame = new GameData(response.gameID(), null, null, gameName,
+                new ChessGame(), GameData.GameState.READY);
         assertEquals(db.getGame(response.gameID()), newGame);
     }
 
@@ -34,8 +35,10 @@ class GameServiceTest {
         CreateGameRequest createGameRequest = new CreateGameRequest(gameName, authData.authToken());
         CreateGameResponse gameID01 = gameService.createGame(createGameRequest);
         CreateGameResponse gameID02 = gameService.createGame(createGameRequest);
-        var game01 = new GameData(gameID01.gameID(), null, null, gameName, new ChessGame());
-        var game02 = new GameData(gameID02.gameID(), null, null, gameName, new ChessGame());
+        var game01 = new GameData(gameID01.gameID(), null, null, gameName,
+                new ChessGame(), GameData.GameState.READY);
+        var game02 = new GameData(gameID02.gameID(), null, null, gameName,
+                new ChessGame(), GameData.GameState.READY);
         assertEquals(db.getGame(gameID01.gameID()), game01);
         assertEquals(db.getGame(gameID02.gameID()), game02);
         assertEquals(db.getGame(gameID01.gameID()).gameName(), db.getGame(gameID02.gameID()).gameName());

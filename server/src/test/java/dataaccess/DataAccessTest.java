@@ -16,12 +16,15 @@ import static org.junit.jupiter.api.Assertions.*;
 class DataAccessTest {
 
     private final UserData userExample = new UserData("joe", "toomanysecrets", "j@j.com");
-    private final GameData gameExample = new GameData(1, null, null, "game", new ChessGame());
-    private final GameData otherGameExample = new GameData(2, "bib", null, "nono", new ChessGame());
+    private final GameData gameExample = new GameData(1, null, null, "game",
+            new ChessGame(), GameData.GameState.READY);
+    private final GameData otherGameExample = new GameData(2, "bib", null, "nono",
+            new ChessGame(), GameData.GameState.READY);
     private final AuthData authExample = new AuthData("joe", "my-authtoken");
 
     private final UserData badUser = new UserData(null, null, null);
-    private final GameData badGame = new GameData(-1, null, null, null, null);
+    private final GameData badGame = new GameData(-1, null, null, null,
+            null, null);
     private final AuthData badAuth = new AuthData(null, null);
 
     private DataAccess getDataAccess(Class<? extends DataAccess> databaseClass) throws RequestException {

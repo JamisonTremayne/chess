@@ -66,14 +66,21 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         add(session);
         AuthData auth = dataAccess.getAuth(command.getAuthToken());
         if (auth == null) {
-            String message = "Sorry, you are not authorized to make a move.";
-            throw new RequestException(message, RequestException.Code.UnauthorizedError);
+            String errorMessage = "Sorry, you are not authorized to make a move.";
+            throw new RequestException(errorMessage, RequestException.Code.UnauthorizedError);
         }
-        GameData gameData = dataAccess.getGame(command.getGameID());
-
         String message = String.format("%s has joined the game as %s!", auth.username(), teamToString(command.getTeam()));
         ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         broadcast(session, serverMessage);
+
+        GameData gameData = dataAccess.getGame(command.getGameID());
+        if (gameData == null) {
+            String errorMessage = "Sorry, for some reason your game could not be found. Try loading up a new game.";
+            throw new RequestException(errorMessage, RequestException.Code.BadRequestError);
+        }
+        String gameJson = new Gson().toJson(gameData.game());
+        ServerMessage gameLoad = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameJson);
+        directMessage(session, gameLoad);
     }
 
     private void makeMove(UserGameCommand command, Session session) throws RequestException, InvalidMoveException {

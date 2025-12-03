@@ -32,11 +32,11 @@ public class WebsocketFacade extends Endpoint {
             //set message handler
             this.session.addMessageHandler((MessageHandler.Whole<String>) message -> {
                 ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
-                client.printMessage(serverMessage);
+                client.handleMessage(serverMessage);
             });
         } catch (DeploymentException | IOException | URISyntaxException ex) {
             String message = "Error: Something went wrong setting up the Websocket Facade.\n" + ex.getMessage();
-            client.printMessage(new ServerMessage(ServerMessage.ServerMessageType.ERROR, message));
+            client.handleMessage(new ServerMessage(ServerMessage.ServerMessageType.ERROR, message));
         }
     }
 

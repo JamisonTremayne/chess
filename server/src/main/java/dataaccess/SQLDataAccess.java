@@ -70,14 +70,17 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public void createGame(GameData gameData) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "INSERT INTO `game`(gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?, ?)";
-            String json = gameData.game().toString();
+            String statement = "INSERT INTO `game`(gameID, whiteUsername, blackUsername, gameName, game, state) " +
+                    "VALUES (?, ?, ?, ?, ?, ?)";
+            String gameJson = gameData.game().toString();
+            String stateJson = new Gson().toJson(gameData.state());
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setInt(1, gameData.gameID());
                 ps.setString(2, gameData.whiteUsername());
                 ps.setString(3, gameData.blackUsername());
                 ps.setString(4, gameData.gameName());
-                ps.setString(5, json);
+                ps.setString(5, gameJson);
+                ps.setString(6, stateJson);
                 ps.executeUpdate();
             }
         } catch (Exception ex) {
@@ -97,8 +100,9 @@ public class SQLDataAccess implements DataAccess {
                     String blackUsername = rs.getString("blackUsername");
                     String gameName = rs.getString("gameName");
                     String jsonGame = rs.getString("game");
+                    GameData.GameState state = new Gson().fromJson(rs.getString("state"), GameData.GameState.class);
                     ChessGame game = new Gson().fromJson(jsonGame, ChessGame.class);
-                    return new GameData(gameID, whiteUsername, blackUsername, gameName, game);
+                    return new GameData(gameID, whiteUsername, blackUsername, gameName, game, state);
                 }
             }
         } catch (DataAccessException | SQLException ex) {
@@ -129,7 +133,7 @@ public class SQLDataAccess implements DataAccess {
     public void updateGame(Integer gameID, GameData gameData) throws RequestException {
         try (Connection conn = DatabaseManager.getConnection()) {
             String deleteStatement = "UPDATE `game`" +
-                    "SET gameID=?, whiteUsername=?, blackUsername=?, gameName=?, game=? " +
+                    "SET gameID=?, whiteUsername=?, blackUsername=?, gameName=?, game=?, state=? " +
                     "WHERE gameID=?";
             try (PreparedStatement ps = conn.prepareStatement(deleteStatement)) {
                 ps.setInt(1, gameData.gameID());
@@ -138,7 +142,9 @@ public class SQLDataAccess implements DataAccess {
                 ps.setString(4, gameData.gameName());
                 String jsonGame = gameData.game().toString();
                 ps.setString(5, jsonGame);
-                ps.setInt(6, gameID);
+                String jsonState = new Gson().toJson(gameData.state());
+                ps.setString(6, jsonState);
+                ps.setInt(7, gameID);
                 ps.executeUpdate();
             }
         } catch (DataAccessException | SQLException ex) {
@@ -215,6 +221,7 @@ public class SQLDataAccess implements DataAccess {
                 `blackUsername` VARCHAR(255),
                 `gameName` VARCHAR(255) NOT NULL,
                 `game` LONGTEXT NOT NULL,
+                `state` LONGTEXT NOT NULL,
                 PRIMARY KEY (`gameID`),
                 INDEX(`gameName`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

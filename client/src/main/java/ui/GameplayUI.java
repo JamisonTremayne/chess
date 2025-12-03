@@ -5,6 +5,7 @@ import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
 import com.google.gson.Gson;
+import exception.RequestException;
 import serverfacade.ServerFacade;
 import serverfacade.WebsocketFacade;
 import websocket.messages.ServerMessage;
@@ -16,13 +17,14 @@ public class GameplayUI extends ClientUI {
     private final ChessGame.TeamColor teamColor;
     private final int gameID;
 
-    public GameplayUI(ServerFacade serverFacade, String authToken, int gameID, ChessGame.TeamColor teamColor) {
+    public GameplayUI(ServerFacade serverFacade, String authToken, int gameID, ChessGame.TeamColor teamColor) throws RequestException {
         super(serverFacade, "IN-GAME");
         this.authToken = authToken;
         this.gameID = gameID;
         this.teamColor = teamColor;
 
         ws = new WebsocketFacade(serverFacade.getServerUrl(), this);
+        ws.connectToGame(authToken, gameID, teamColor);
     }
 
     @Override
@@ -63,8 +65,9 @@ public class GameplayUI extends ClientUI {
         return helpString;
     }
 
-    private String leave() {
+    private String leave() throws RequestException {
         changeUITo(new PostloginUI(serverFacade, authToken));
+        ws.leaveGame(authToken, gameID, teamColor);
         return EscapeSequences.SET_TEXT_COLOR_GREEN + "Successfully left the game.";
     }
 

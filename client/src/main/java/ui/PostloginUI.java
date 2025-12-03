@@ -180,7 +180,7 @@ public class PostloginUI extends ClientUI {
         }
     }
 
-    private String observeGame(String[] args) {
+    private String observeGame(String[] args) throws RequestException {
         if (args.length < 2) {
             return formatError("""
                     You did not give enough arguments.

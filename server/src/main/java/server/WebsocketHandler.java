@@ -192,9 +192,9 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         ChessGame.TeamColor otherTeam = team == ChessGame.TeamColor.WHITE? ChessGame.TeamColor.BLACK:
                 ChessGame.TeamColor.WHITE;
         String message = String.format("%s (%s) has resigned!", auth.username(), teamToString(team));
+        message += gameEnd(gameData, otherTeam);
         Notification notification = new Notification(message);
-        broadcast(session, notification);
-        gameEnd(gameData, otherTeam);
+        broadcast(null, notification);
     }
 
     private void checkGameConditions(GameData gameData) throws RequestException {
@@ -205,16 +205,18 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         ChessGame game = gameData.game();
         if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) { // Check for Black Team Win
             String message = String.format("%s is in Checkmate!", teamToString(ChessGame.TeamColor.WHITE));
+            message += gameEnd(gameData, ChessGame.TeamColor.BLACK);
             Notification notification = new Notification(message);
             broadcast(null, notification);
-            gameEnd(gameData, ChessGame.TeamColor.BLACK);
         } else if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) { // Check for White Team Win
             String message = String.format("%s is in Checkmate!", teamToString(ChessGame.TeamColor.WHITE));
+            message += gameEnd(gameData, ChessGame.TeamColor.WHITE);
             Notification notification = new Notification(message);
             broadcast(null, notification);
-            gameEnd(gameData, ChessGame.TeamColor.WHITE);
         } else if (game.isInStalemate(ChessGame.TeamColor.WHITE) || game.isInStalemate(ChessGame.TeamColor.BLACK)) {
-            gameEnd(gameData, null); // Check for Stalemate
+            String message = gameEnd(gameData, null); // Check for Stalemate
+            Notification notification = new Notification(message);
+            broadcast(null, notification);
         } else if (game.isInCheck(ChessGame.TeamColor.WHITE)) { // Check for White in Check (but not Checkmate)
             String message = String.format("%s is in Check!", teamToString(ChessGame.TeamColor.WHITE));
             Notification notification = new Notification(message);
@@ -226,22 +228,21 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private void gameEnd(GameData gameData, ChessGame.TeamColor winningTeam) throws RequestException {
+    private String gameEnd(GameData gameData, ChessGame.TeamColor winningTeam) throws RequestException {
         if (gameData == null) {
             String message = "Sorry, for some reason the game could not be found. Unable to end the game.";
             throw new RequestException(message, RequestException.Code.BadRequestError);
         }
-        String message;
+        String message = "\n";
         if (winningTeam != null) {
-            message = String.format("%s HAS WON!", teamToString(winningTeam));
+            message += String.format("%s HAS WON!", teamToString(winningTeam));
         } else {
-            message = "STALEMATE!";
+            message += "STALEMATE!";
         }
-        Notification notification = new Notification(message);
-        broadcast(null, notification);
         GameData newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
                 gameData.gameName(), gameData.game(), GameData.GameState.COMPLETE);
         dataAccess.updateGame(newGameData.gameID(), newGameData);
+        return message;
     }
 
     private String teamToString(ChessGame.TeamColor teamColor) {
@@ -263,10 +264,10 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         AuthData auth = dataAccess.getAuth(command.getAuthToken());
         GameData gameData = dataAccess.getGame(command.getGameID());
         ChessGame.TeamColor team = command.getTeam();
-        if (team == null) {
-            if (auth.equals(dataAccess.getAuth(gameData.whiteUsername()))) {
+        if (team == null && auth != null && gameData != null) {
+            if (auth.username().equals(gameData.whiteUsername())) {
                 team = ChessGame.TeamColor.WHITE;
-            } else if (auth.equals(dataAccess.getAuth(gameData.blackUsername()))) {
+            } else if (auth.username().equals(gameData.blackUsername())) {
                 team = ChessGame.TeamColor.BLACK;
             }
         }

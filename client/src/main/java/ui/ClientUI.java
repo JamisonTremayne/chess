@@ -22,7 +22,7 @@ public abstract class ClientUI {
 
     public void run() throws Exception {
         while (!quit) {
-            System.out.printf("[%s] >>> ", statusMessage);
+            printPrompt();
             Scanner scanner = new Scanner(System.in);
             String command = scanner.nextLine();
             try {
@@ -31,7 +31,6 @@ public abstract class ClientUI {
             } catch (RequestException ex) {
                 System.out.println(formatError(handleExceptions(ex, command)));
             }
-                System.out.print(RESET_STRING);
         }
         if (toUI != null) {
             toUI.run();
@@ -67,6 +66,10 @@ public abstract class ClientUI {
         errorString += "ERROR: " + EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY;
         errorString += EscapeSequences.RESET_TEXT_BOLD_FAINT + description;
         return errorString;
+    }
+
+    public void printPrompt() {
+        System.out.printf("%s[%s] >>> ", RESET_STRING, statusMessage);
     }
 
     private String handleExceptions(RequestException ex, String command) {

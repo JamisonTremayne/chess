@@ -71,6 +71,7 @@ public class GameplayUI extends ClientUI {
             ChessGame game = new Gson().fromJson(serverMessage.getMessage(), ChessGame.class);
             displayBoard(game, null);
         }
+        printPrompt();
     }
 
     @Override
@@ -330,7 +331,7 @@ public class GameplayUI extends ClientUI {
     }
 
     private String formatHighlightSquare() {
-        return EscapeSequences.SET_BG_COLOR_YELLOW;
+        return EscapeSequences.SET_BG_COLOR_MAGENTA;
     }
 
     private String formatWhite() {

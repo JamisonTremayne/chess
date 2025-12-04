@@ -128,7 +128,7 @@ public class PostloginUI extends ClientUI {
             case READY -> returnString += EscapeSequences.SET_TEXT_COLOR_GREEN + "READY";
             case IN_PROGRESS -> returnString += EscapeSequences.SET_TEXT_COLOR_YELLOW + "IN PROGRESS";
             case UNFINISHED -> returnString += EscapeSequences.SET_TEXT_COLOR_RED + "UNFINISHED";
-            case COMPLETE -> returnString += EscapeSequences.SET_TEXT_COLOR_DARK_GREY + "COMPLETE";
+            case COMPLETE -> returnString += EscapeSequences.SET_TEXT_COLOR_WHITE + "COMPLETE";
 
         }
         return returnString + EscapeSequences.SET_TEXT_COLOR_BLUE;

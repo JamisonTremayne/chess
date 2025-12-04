@@ -17,7 +17,7 @@ import io.javalin.websocket.WsMessageHandler;
 import org.eclipse.jetty.websocket.api.Session;
 import org.jetbrains.annotations.NotNull;
 import websocket.commands.UserGameCommand;
-import websocket.messages.ServerMessage;
+import websocket.messages.*;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,11 +48,11 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 case RESIGN -> resignFromGame(userCommand, ctx.session);
             }
         } catch (RequestException ex) {
-            ServerMessage serverError = new ServerMessage(ServerMessage.ServerMessageType.ERROR, ex.getMessage());
+            ErrorMessage serverError = new ErrorMessage(ex.getMessage());
             directMessage(ctx.session, serverError);
         } catch (InvalidMoveException ex) {
             String message = "Sorry, that move is not valid. Try again to make a valid move.";
-            ServerMessage serverError = new ServerMessage(ServerMessage.ServerMessageType.ERROR, message);
+            ErrorMessage serverError = new ErrorMessage(message);
             directMessage(ctx.session, serverError);
         }
     }
@@ -70,7 +70,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             throw new RequestException(errorMessage, RequestException.Code.UnauthorizedError);
         }
         String message = String.format("%s has joined the game as %s!", auth.username(), teamToString(command.getTeam()));
-        ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+        Notification serverMessage = new Notification(message);
         broadcast(session, serverMessage);
 
         GameData gameData = dataAccess.getGame(command.getGameID());
@@ -78,8 +78,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             String errorMessage = "Sorry, for some reason your game could not be found. Try loading up a new game.";
             throw new RequestException(errorMessage, RequestException.Code.BadRequestError);
         }
-        String gameJson = new Gson().toJson(gameData.game());
-        ServerMessage gameLoad = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameJson);
+        LoadGame gameLoad = new LoadGame(gameData.game());
         directMessage(session, gameLoad);
     }
 
@@ -89,7 +88,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     Sorry, you cannot make a move as an observer!
                     Join a game as either WHITE or BLACK to play the game.
                     """;
-            ServerMessage serverError = new ServerMessage(ServerMessage.ServerMessageType.ERROR, message);
+            ErrorMessage serverError = new ErrorMessage(message);
             directMessage(session, serverError);
             return;
         }
@@ -107,7 +106,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     This game has already been completed!
                     Join a new game to play!
                     """;
-            ServerMessage serverError = new ServerMessage(ServerMessage.ServerMessageType.ERROR, message);
+            ErrorMessage serverError = new ErrorMessage(message);
             directMessage(session, serverError);
             return;
         }
@@ -117,7 +116,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     Sorry, it is not your turn!
                     Wait for the other team to go first, and then try again.
                     """;
-            ServerMessage serverError = new ServerMessage(ServerMessage.ServerMessageType.ERROR, message);
+            ErrorMessage serverError = new ErrorMessage(message);
             directMessage(session, serverError);
             return;
         }
@@ -125,14 +124,13 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         GameData newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
                 gameData.gameName(), game, gameData.state());
         dataAccess.updateGame(command.getGameID(), newGameData);
-        String gameJson = new Gson().toJson(game);
-        ServerMessage gameLoad = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameJson);
+        LoadGame gameLoad = new LoadGame(game);
         broadcast(null, gameLoad);
         String startPos = command.getMove().getStartPosition().toString();
         String endPos = command.getMove().getEndPosition().toString();
         String message = String.format("%s moved %s to %s!", auth.username(), startPos, endPos);
-        ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        broadcast(session, serverMessage);
+        Notification notification = new Notification(message);
+        broadcast(session, notification);
         checkGameConditions(newGameData);
     }
 
@@ -152,8 +150,8 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             dataAccess.updateGame(newGameData.gameID(), newGameData);
         }
         String message = String.format("%s (%s) has left the game.", auth.username(), teamToString(command.getTeam()));
-        ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        broadcast(session, serverMessage);
+        Notification notification = new Notification(message);
+        broadcast(session, notification);
         remove(session);
     }
 
@@ -163,7 +161,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     Sorry, you cannot resign as an observer!
                     You can still leave if you want with the LEAVE command.
                     """;
-            ServerMessage serverError = new ServerMessage(ServerMessage.ServerMessageType.ERROR, message);
+            ErrorMessage serverError = new ErrorMessage(message);
             directMessage(session, serverError);
             return;
         }
@@ -182,15 +180,15 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     You can't resign from a game that's already over, silly!
                     Join another game to give up if you want.
                     """;
-            ServerMessage serverError = new ServerMessage(ServerMessage.ServerMessageType.ERROR, message);
+            ErrorMessage serverError = new ErrorMessage(message);
             directMessage(session, serverError);
             return;
         }
         ChessGame.TeamColor otherTeam = command.getTeam() == ChessGame.TeamColor.WHITE? ChessGame.TeamColor.BLACK:
                 ChessGame.TeamColor.WHITE;
         String message = String.format("%s (%s) has resigned!", auth.username(), teamToString(command.getTeam()));
-        ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        broadcast(session, serverMessage);
+        Notification notification = new Notification(message);
+        broadcast(session, notification);
         gameEnd(gameData, otherTeam);
     }
 
@@ -202,24 +200,24 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         ChessGame game = gameData.game();
         if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) { // Check for Black Team Win
             String message = String.format("%s is in Checkmate!", teamToString(ChessGame.TeamColor.WHITE));
-            ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            broadcast(null, serverMessage);
+            Notification notification = new Notification(message);
+            broadcast(null, notification);
             gameEnd(gameData, ChessGame.TeamColor.BLACK);
         } else if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) { // Check for White Team Win
             String message = String.format("%s is in Checkmate!", teamToString(ChessGame.TeamColor.WHITE));
-            ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            broadcast(null, serverMessage);
+            Notification notification = new Notification(message);
+            broadcast(null, notification);
             gameEnd(gameData, ChessGame.TeamColor.WHITE);
         } else if (game.isInStalemate(ChessGame.TeamColor.WHITE) || game.isInStalemate(ChessGame.TeamColor.BLACK)) {
             gameEnd(gameData, null); // Check for Stalemate
         } else if (game.isInCheck(ChessGame.TeamColor.WHITE)) { // Check for White in Check (but not Checkmate)
             String message = String.format("%s is in Check!", teamToString(ChessGame.TeamColor.WHITE));
-            ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            broadcast(null, serverMessage);
+            Notification notification = new Notification(message);
+            broadcast(null, notification);
         } else if (game.isInCheck(ChessGame.TeamColor.BLACK)) { // Check for Black in Check (but not Checkmate)
             String message = String.format("%s is in Check!", teamToString(ChessGame.TeamColor.BLACK));
-            ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            broadcast(null, serverMessage);
+            Notification notification = new Notification(message);
+            broadcast(null, notification);
         }
     }
 
@@ -234,8 +232,8 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         } else {
             message = "STALEMATE!";
         }
-        ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        broadcast(null, serverMessage);
+        Notification notification = new Notification(message);
+        broadcast(null, notification);
         GameData newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
                 gameData.gameName(), gameData.game(), GameData.GameState.COMPLETE);
         dataAccess.updateGame(newGameData.gameID(), newGameData);

@@ -6,7 +6,7 @@ import com.google.gson.Gson;
 import exception.RequestException;
 import ui.GameplayUI;
 import websocket.commands.UserGameCommand;
-import websocket.messages.ServerMessage;
+import websocket.messages.*;
 
 import jakarta.websocket.*;
 
@@ -40,7 +40,7 @@ public class WebsocketFacade extends Endpoint {
             });
         } catch (DeploymentException | IOException | URISyntaxException ex) {
             String message = "Error: Something went wrong setting up the Websocket Facade.\n" + ex.getMessage();
-            client.handleMessage(new ServerMessage(ServerMessage.ServerMessageType.ERROR, message));
+            client.handleMessage(new ErrorMessage(message));
         }
     }
 

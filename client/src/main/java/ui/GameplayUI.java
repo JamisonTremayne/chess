@@ -5,7 +5,7 @@ import com.google.gson.Gson;
 import exception.RequestException;
 import serverfacade.ServerFacade;
 import serverfacade.WebsocketFacade;
-import websocket.messages.ServerMessage;
+import websocket.messages.*;
 
 import java.util.HashSet;
 
@@ -63,13 +63,15 @@ public class GameplayUI extends ClientUI {
 
     public void handleMessage(ServerMessage serverMessage) {
         if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
-            String string = EscapeSequences.SET_TEXT_COLOR_GREEN + serverMessage.getMessage();
+            Notification notification = (Notification) serverMessage;
+            String string = EscapeSequences.SET_TEXT_COLOR_GREEN + notification.getMessage();
             System.out.println(string + EscapeSequences.RESET_TEXT_COLOR);
         } else if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.ERROR) {
-            System.out.println(formatError(serverMessage.getMessage()));
+            ErrorMessage errorMessage = (ErrorMessage) serverMessage;
+            System.out.println(formatError(errorMessage.getErrorMessage()));
         } else if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
-            ChessGame game = new Gson().fromJson(serverMessage.getMessage(), ChessGame.class);
-            displayBoard(game, null);
+            LoadGame loadGame = (LoadGame) serverMessage;
+            displayBoard(loadGame.getGame(), null);
         }
         printPrompt();
     }

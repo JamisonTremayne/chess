@@ -63,13 +63,13 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void connectToGame(UserGameCommand command, Session session) throws RequestException {
-        add(session);
         AuthData auth = dataAccess.getAuth(command.getAuthToken());
         if (auth == null) {
             String errorMessage = "Sorry, you are not authorized to make a move.";
             throw new RequestException(errorMessage, RequestException.Code.UnauthorizedError);
         }
-        String message = String.format("%s has joined the game as %s!", auth.username(), teamToString(command.getTeam()));
+        ChessGame.TeamColor team = getTeam(command);
+        String message = String.format("%s has joined the game as %s!", auth.username(), teamToString(team));
         Notification serverMessage = new Notification(message);
         broadcast(session, serverMessage);
 
@@ -80,18 +80,10 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         LoadGame gameLoad = new LoadGame(gameData.game());
         directMessage(session, gameLoad);
+        add(session);
     }
 
     private void makeMove(UserGameCommand command, Session session) throws RequestException, InvalidMoveException {
-        if (command.getTeam() == null) {
-            String message = """ 
-                    Sorry, you cannot make a move as an observer!
-                    Join a game as either WHITE or BLACK to play the game.
-                    """;
-            ErrorMessage serverError = new ErrorMessage(message);
-            directMessage(session, serverError);
-            return;
-        }
         AuthData auth = dataAccess.getAuth(command.getAuthToken());
         if (auth == null) {
             String message = "Sorry, you are not authorized to make a move.";
@@ -110,8 +102,19 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             directMessage(session, serverError);
             return;
         }
+
+        ChessGame.TeamColor team = getTeam(command);
+        if (team == null) {
+            String message = """ 
+                    Sorry, you cannot make a move as an observer!
+                    Join a game as either WHITE or BLACK to play the game.
+                    """;
+            ErrorMessage serverError = new ErrorMessage(message);
+            directMessage(session, serverError);
+            return;
+        }
         ChessGame game = gameData.game();
-        if (game.getTeamTurn() != command.getTeam()) {
+        if (game.getTeamTurn() != team) {
             String message = """ 
                     Sorry, it is not your turn!
                     Wait for the other team to go first, and then try again.
@@ -137,34 +140,26 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void leaveGame(UserGameCommand command, Session session) throws RequestException {
         AuthData auth = dataAccess.getAuth(command.getAuthToken());
         GameData gd = dataAccess.getGame(command.getGameID());
+        ChessGame.TeamColor team = getTeam(command);
         if (gd != null) {
             GameData.GameState state = gd.state();
             if (state == GameData.GameState.IN_PROGRESS) {
                 state = GameData.GameState.UNFINISHED;
             }
-            GameData newGameData = (command.getTeam() == ChessGame.TeamColor.WHITE) ?
+            GameData newGameData = (team == ChessGame.TeamColor.WHITE) ?
                     new GameData(gd.gameID(), null, gd.blackUsername(), gd.gameName(), gd.game(), state) :
-                    (command.getTeam() == ChessGame.TeamColor.BLACK) ?
+                    (team == ChessGame.TeamColor.BLACK) ?
                             new GameData(gd.gameID(), gd.whiteUsername(), null, gd.gameName(), gd.game(), state) :
                             gd;
             dataAccess.updateGame(newGameData.gameID(), newGameData);
         }
-        String message = String.format("%s (%s) has left the game.", auth.username(), teamToString(command.getTeam()));
+        String message = String.format("%s (%s) has left the game.", auth.username(), teamToString(team));
         Notification notification = new Notification(message);
         broadcast(session, notification);
         remove(session);
     }
 
     private void resignFromGame(UserGameCommand command, Session session) throws RequestException {
-        if (command.getTeam() == null) {
-            String message = """ 
-                    Sorry, you cannot resign as an observer!
-                    You can still leave if you want with the LEAVE command.
-                    """;
-            ErrorMessage serverError = new ErrorMessage(message);
-            directMessage(session, serverError);
-            return;
-        }
         AuthData auth = dataAccess.getAuth(command.getAuthToken());
         if (auth == null) {
             String message = "Sorry, you are not authorized to resign.";
@@ -184,9 +179,19 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             directMessage(session, serverError);
             return;
         }
-        ChessGame.TeamColor otherTeam = command.getTeam() == ChessGame.TeamColor.WHITE? ChessGame.TeamColor.BLACK:
+        ChessGame.TeamColor team = getTeam(command);
+        if (team == null) {
+            String message = """ 
+                    Sorry, you cannot resign as an observer!
+                    You can still leave if you want with the LEAVE command.
+                    """;
+            ErrorMessage serverError = new ErrorMessage(message);
+            directMessage(session, serverError);
+            return;
+        }
+        ChessGame.TeamColor otherTeam = team == ChessGame.TeamColor.WHITE? ChessGame.TeamColor.BLACK:
                 ChessGame.TeamColor.WHITE;
-        String message = String.format("%s (%s) has resigned!", auth.username(), teamToString(command.getTeam()));
+        String message = String.format("%s (%s) has resigned!", auth.username(), teamToString(team));
         Notification notification = new Notification(message);
         broadcast(session, notification);
         gameEnd(gameData, otherTeam);
@@ -252,6 +257,20 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
 
         }
+    }
+
+    private ChessGame.TeamColor getTeam(UserGameCommand command) throws RequestException {
+        AuthData auth = dataAccess.getAuth(command.getAuthToken());
+        GameData gameData = dataAccess.getGame(command.getGameID());
+        ChessGame.TeamColor team = command.getTeam();
+        if (team == null) {
+            if (auth.equals(dataAccess.getAuth(gameData.whiteUsername()))) {
+                team = ChessGame.TeamColor.WHITE;
+            } else if (auth.equals(dataAccess.getAuth(gameData.blackUsername()))) {
+                team = ChessGame.TeamColor.BLACK;
+            }
+        }
+        return team;
     }
     
     public void add(Session session) {

@@ -54,7 +54,7 @@ public class GameplayUI extends ClientUI {
                     return invalidCommand(commandHead);
                 }
             } case "highlight", "highlight_moves", "select", "select_piece", "show_moves", "show" -> {
-                return "";
+                return highlightMoves(commandWords);
             } default -> {
                 return invalidCommand(commandHead);
             }
@@ -69,7 +69,7 @@ public class GameplayUI extends ClientUI {
             System.out.println(formatError(serverMessage.getMessage()));
         } else if (serverMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
             ChessGame game = new Gson().fromJson(serverMessage.getMessage(), ChessGame.class);
-            displayBoard(game);
+            displayBoard(game, null);
         }
     }
 
@@ -91,7 +91,7 @@ public class GameplayUI extends ClientUI {
     }
 
     private String redrawBoard() {
-        displayBoard(currentGame);
+        displayBoard(currentGame, null);
         return "";
     }
 
@@ -214,10 +214,33 @@ public class GameplayUI extends ClientUI {
         return "";
     }
 
-    private void displayBoard(ChessGame game) {
+    private String highlightMoves(String[] args) throws RequestException {
+        if (args.length < 2) {
+            return formatError("""
+                    You did not give enough arguments.
+                    To select/highlight a piece, please give the <POSITION> of the piece.
+                    Use LetterNumber format (A2, E3, etc) for positions.
+                    """);
+        } else if (args.length > 2) {
+            return formatError("""
+                    You gave too many arguments.
+                    To select/highlight a piece, please give the <POSITION> of the piece.
+                    Use LetterNumber format (A2, E3, etc) for positions.
+                    """);
+        }
+        ChessPosition position = stringToPosition(args[1]);
+        displayBoard(currentGame, position);
+        return "";
+    }
+
+    private void displayBoard(ChessGame game, ChessPosition highlightPiece) {
         currentGame = game;
         System.out.println();
         ChessBoard board = game.getBoard();
+        HashSet<ChessMove> pieceMoves = new HashSet<>();
+        if (highlightPiece != null) {
+            pieceMoves = (HashSet<ChessMove>) game.validMoves(highlightPiece);
+        }
         int startI = teamColor == ChessGame.TeamColor.BLACK? 0: 9;
         int startJ = teamColor == ChessGame.TeamColor.BLACK? 9: 0;
         int incrementI = teamColor == ChessGame.TeamColor.BLACK? 1: -1;
@@ -241,10 +264,22 @@ public class GameplayUI extends ClientUI {
                     ln = formatBorder() + EscapeSequences.EMPTY + i + " ";
                 } else {
                     int square = (i + j) % 2;
+                    ChessMove possibleMove = new ChessMove(highlightPiece, new ChessPosition(i, j), null);
                     if (square == 0) {
-                        ln = formatDarkSquare();
+                        if (pieceMoves.contains(possibleMove)) {
+                            ln = formatDarkHighlightSquare();
+                        } else {
+                            ln = formatDarkSquare();
+                        }
                     } else {
-                        ln = formatLightSquare();
+                        if (pieceMoves.contains(possibleMove)) {
+                            ln = formatLightHighlightSquare();
+                        } else {
+                            ln = formatLightSquare();
+                        }
+                    }
+                    if (new ChessPosition(i, j).equals(highlightPiece)) {
+                        ln = formatHighlightSquare();
                     }
                     ChessPiece piece = board.getPiece(new ChessPosition(i, j));
                     if (piece == null) {
@@ -279,11 +314,23 @@ public class GameplayUI extends ClientUI {
     }
 
     private String formatLightSquare() {
-        return EscapeSequences.SET_BG_COLOR_LIGHT_GREY;
+        return EscapeSequences.SET_BG_COLOR_LIGHT_BROWN;
     }
 
     private String formatDarkSquare() {
-        return EscapeSequences.SET_BG_COLOR_DARK_GREEN;
+        return EscapeSequences.SET_BG_COLOR_DARK_BROWN;
+    }
+
+    private String formatLightHighlightSquare() {
+        return EscapeSequences.SET_BG_COLOR_LIGHT_BLUE;
+    }
+
+    private String formatDarkHighlightSquare() {
+        return EscapeSequences.SET_BG_COLOR_DARK_BLUE;
+    }
+
+    private String formatHighlightSquare() {
+        return EscapeSequences.SET_BG_COLOR_YELLOW;
     }
 
     private String formatWhite() {

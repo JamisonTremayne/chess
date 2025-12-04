@@ -42,9 +42,17 @@ public class GameplayUI extends ClientUI {
             } case "leave" -> {
                 return leave();
             } case "move", "make_move" -> {
-                return makeMove(commandWords);
+                if (teamColor != null) {
+                    return makeMove(commandWords);
+                } else {
+                    return invalidCommand(commandHead);
+                }
             } case "resign" -> {
-                return "";
+                if (teamColor != null) {
+                    return resign();
+                } else {
+                    return invalidCommand(commandHead);
+                }
             } case "highlight", "highlight_moves", "select", "select_piece", "show_moves", "show" -> {
                 return "";
             } default -> {
@@ -71,12 +79,14 @@ public class GameplayUI extends ClientUI {
         helpString += formatHelp("help", "List available commands.");
         helpString += formatHelp("draw", "Redraw the chess board.");
         helpString += formatHelp("leave", "Leave your current game.");
-        helpString += formatHelp("move <POSITION> to <POSITION>",
-                "Move a piece at one position to another position. Use LetterNumber (A2, E3, etc) for positions.");
-        helpString += formatHelp("resign",
-                "Resign from the game, letting your opponent win (why would you do that?).");
-        helpString += formatHelp("select <POSITION>",
-                "Select a piece to view its available moves. Use LetterNumber (A2, E3, etc) for positions.");
+        if (teamColor != null) {
+            helpString += formatHelp("move <POSITION> to <POSITION>",
+                    "Move a piece at one position to another position. Use LetterNumber (A2, E3, etc) for positions.");
+            helpString += formatHelp("resign",
+                    "Resign from the game, letting your opponent win (why would you do that?).");
+            helpString += formatHelp("select <POSITION>",
+                    "Select a piece to view its available moves. Use LetterNumber (A2, E3, etc) for positions.");
+        }
         return helpString;
     }
 
@@ -92,6 +102,12 @@ public class GameplayUI extends ClientUI {
     }
 
     private String makeMove(String[] args) throws RequestException {
+        if (currentGame.getTeamTurn() != teamColor) {
+            return formatError("""
+                    It is not your turn!.
+                    Wait for your opponent to take their turn before making yours.
+                    """);
+        }
         if (args.length < 3) {
             return formatError("""
                     You did not give enough arguments.
@@ -191,6 +207,11 @@ public class GameplayUI extends ClientUI {
             }
         }
         return new ChessPosition(row, col);
+    }
+
+    private String resign() throws RequestException {
+        ws.resign(authToken, gameID, teamColor);
+        return "";
     }
 
     private void displayBoard(ChessGame game) {

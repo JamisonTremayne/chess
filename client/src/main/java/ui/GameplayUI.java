@@ -269,17 +269,9 @@ public class GameplayUI extends ClientUI {
                     int square = (i + j) % 2;
                     ChessMove possibleMove = new ChessMove(highlightPiece, new ChessPosition(i, j), null);
                     if (square == 0) {
-                        if (pieceMoves.contains(possibleMove)) {
-                            ln = formatDarkHighlightSquare();
-                        } else {
-                            ln = formatDarkSquare();
-                        }
+                        ln = pieceMoves.contains(possibleMove)? formatDarkHighlightSquare(): formatDarkSquare();
                     } else {
-                        if (pieceMoves.contains(possibleMove)) {
-                            ln = formatLightHighlightSquare();
-                        } else {
-                            ln = formatLightSquare();
-                        }
+                        ln = pieceMoves.contains(possibleMove)? formatLightHighlightSquare(): formatLightSquare();
                     }
                     if (new ChessPosition(i, j).equals(highlightPiece)) {
                         ln = formatHighlightSquare();

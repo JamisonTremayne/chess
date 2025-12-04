@@ -39,11 +39,11 @@ public class Server {
         server.get("game", this::listGamesHandler);
         server.post("game", this::createGameHandler);
         server.put("game", this::joinGameHandler);
-        server.ws("/ws", ws -> ws.onConnect(_ -> {
+        server.ws("/ws", ws -> {
             ws.onConnect(websocketHandler);
             ws.onMessage(websocketHandler);
             ws.onClose(websocketHandler);
-        }));
+        });
     }
 
     public int run(int desiredPort) {

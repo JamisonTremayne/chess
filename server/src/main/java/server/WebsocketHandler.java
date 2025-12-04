@@ -41,7 +41,6 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     public void handleMessage(WsMessageContext ctx) {
         try {
             UserGameCommand userCommand = new Gson().fromJson(ctx.message(), UserGameCommand.class);
-            System.out.println("Received command: " + userCommand.toString());
             switch (userCommand.getCommandType()) {
                 case CONNECT -> connectToGame(userCommand, ctx.session);
                 case MAKE_MOVE -> makeMove(userCommand, ctx.session);

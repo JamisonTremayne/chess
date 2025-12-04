@@ -35,10 +35,18 @@ public class GameplayUI extends ClientUI {
         }
         String commandHead = commandWords[0].toLowerCase(); //NOT CASE SENSITIVE
         switch (commandHead) {
-            case "help" -> {
+            case "help", "?" -> {
                 return help();
+            } case "redraw", "draw", "redraw_board", "redraw_chess_board", "redraw_chessboard", "draw_board" -> {
+                return "";
             } case "leave" -> {
                 return leave();
+            } case "move", "make_move" -> {
+                return "";
+            } case "resign" -> {
+                return "";
+            } case "highlight", "highlight_moves", "select", "select_piece", "show_moves", "show" -> {
+                return "";
             } default -> {
                 return invalidCommand(commandHead);
             }
@@ -61,7 +69,14 @@ public class GameplayUI extends ClientUI {
     public String help() {
         String helpString = "";
         helpString += formatHelp("help", "List available commands.");
+        helpString += formatHelp("draw", "Redraw the chess board.");
         helpString += formatHelp("leave", "Leave your current game.");
+        helpString += formatHelp("move <POSITION> to <POSITION>",
+                "Move a piece at one position to another position. Use LetterNumber (A2, E3, etc) for positions.");
+        helpString += formatHelp("resign",
+                "Resign from the game, letting your opponent win (why would you do that?).");
+        helpString += formatHelp("select <POSITION>",
+                "Select a piece to view its available moves. Use LetterNumber (A2, E3, etc) for positions.");
         return helpString;
     }
 

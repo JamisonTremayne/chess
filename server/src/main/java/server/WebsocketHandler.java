@@ -24,7 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
-    public final ConcurrentHashMap<Session, Session> connections = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<Integer, ConcurrentHashMap<Session, Session>>
+            connections = new ConcurrentHashMap<>();
     private final DataAccess dataAccess;
 
     public WebsocketHandler(DataAccess dataAccess) {
@@ -71,7 +72,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         ChessGame.TeamColor team = getTeam(command);
         String message = String.format("%s has joined the game as %s!", auth.username(), teamToString(team));
         Notification serverMessage = new Notification(message);
-        broadcast(session, serverMessage);
+        broadcast(session, serverMessage, command.getGameID());
 
         GameData gameData = dataAccess.getGame(command.getGameID());
         if (gameData == null) {
@@ -80,7 +81,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         LoadGame gameLoad = new LoadGame(gameData.game());
         directMessage(session, gameLoad);
-        add(session);
+        add(session, command.getGameID());
     }
 
     private void makeMove(UserGameCommand command, Session session) throws RequestException, InvalidMoveException {
@@ -128,12 +129,12 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 gameData.gameName(), game, gameData.state());
         dataAccess.updateGame(command.getGameID(), newGameData);
         LoadGame gameLoad = new LoadGame(game);
-        broadcast(null, gameLoad);
+        broadcast(null, gameLoad, command.getGameID());
         String startPos = command.getMove().getStartPosition().toString();
         String endPos = command.getMove().getEndPosition().toString();
         String message = String.format("%s moved %s to %s!", auth.username(), startPos, endPos);
         Notification notification = new Notification(message);
-        broadcast(session, notification);
+        broadcast(session, notification, command.getGameID());
         checkGameConditions(newGameData);
     }
 
@@ -155,8 +156,8 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         String message = String.format("%s (%s) has left the game.", auth.username(), teamToString(team));
         Notification notification = new Notification(message);
-        broadcast(session, notification);
-        remove(session);
+        broadcast(session, notification, command.getGameID());
+        remove(session, command.getGameID());
     }
 
     private void resignFromGame(UserGameCommand command, Session session) throws RequestException {
@@ -194,7 +195,7 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         String message = String.format("%s (%s) has resigned!", auth.username(), teamToString(team));
         message += gameEnd(gameData, otherTeam);
         Notification notification = new Notification(message);
-        broadcast(null, notification);
+        broadcast(null, notification, command.getGameID());
     }
 
     private void checkGameConditions(GameData gameData) throws RequestException {
@@ -207,24 +208,24 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             String message = String.format("%s is in Checkmate!", teamToString(ChessGame.TeamColor.WHITE));
             message += gameEnd(gameData, ChessGame.TeamColor.BLACK);
             Notification notification = new Notification(message);
-            broadcast(null, notification);
+            broadcast(null, notification, gameData.gameID());
         } else if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) { // Check for White Team Win
             String message = String.format("%s is in Checkmate!", teamToString(ChessGame.TeamColor.WHITE));
             message += gameEnd(gameData, ChessGame.TeamColor.WHITE);
             Notification notification = new Notification(message);
-            broadcast(null, notification);
+            broadcast(null, notification, gameData.gameID());
         } else if (game.isInStalemate(ChessGame.TeamColor.WHITE) || game.isInStalemate(ChessGame.TeamColor.BLACK)) {
             String message = gameEnd(gameData, null); // Check for Stalemate
             Notification notification = new Notification(message);
-            broadcast(null, notification);
+            broadcast(null, notification, gameData.gameID());
         } else if (game.isInCheck(ChessGame.TeamColor.WHITE)) { // Check for White in Check (but not Checkmate)
             String message = String.format("%s is in Check!", teamToString(ChessGame.TeamColor.WHITE));
             Notification notification = new Notification(message);
-            broadcast(null, notification);
+            broadcast(null, notification, gameData.gameID());
         } else if (game.isInCheck(ChessGame.TeamColor.BLACK)) { // Check for Black in Check (but not Checkmate)
             String message = String.format("%s is in Check!", teamToString(ChessGame.TeamColor.BLACK));
             Notification notification = new Notification(message);
-            broadcast(null, notification);
+            broadcast(null, notification, gameData.gameID());
         }
     }
 
@@ -274,20 +275,36 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         return team;
     }
     
-    public void add(Session session) {
-        connections.put(session, session);
+    public void add(Session session, Integer gameID) {
+        ConcurrentHashMap<Session, Session> connectionGroup = connections.get(gameID);
+        if (connectionGroup == null) {
+            ConcurrentHashMap<Session, Session> newGroup = new ConcurrentHashMap<>();
+            newGroup.put(session, session);
+            connections.put(gameID, newGroup);
+        } else {
+            connectionGroup.put(session, session);
+        }
     }
 
-    public void remove(Session session) {
-        connections.remove(session);
+    public void remove(Session session, Integer gameID) {
+        ConcurrentHashMap<Session, Session> connectionGroup = connections.get(gameID);
+        if (connectionGroup != null) {
+            connectionGroup.remove(session);
+            if (connectionGroup.isEmpty()) {
+                connections.remove(gameID);
+            }
+        }
     }
 
-    public void broadcast(Session excludeSession, ServerMessage serverMessage) {
+    public void broadcast(Session excludeSession, ServerMessage serverMessage, Integer gameID) {
         try {
             String msg = serverMessage.toString();
-            for (Session c : connections.values()) {
-                if (c.isOpen() && !c.equals(excludeSession)) {
-                    c.getRemote().sendString(msg);
+            for (Integer id : connections.keySet()) {
+                ConcurrentHashMap<Session, Session> group = connections.get(id);
+                for (Session c : group.values()) {
+                    if (c.isOpen() && !c.equals(excludeSession) && gameID.equals(id)) {
+                        c.getRemote().sendString(msg);
+                    }
                 }
             }
         } catch (IOException ex) {

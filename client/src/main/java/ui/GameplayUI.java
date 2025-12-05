@@ -1,7 +1,6 @@
 package ui;
 
 import chess.*;
-import com.google.gson.Gson;
 import exception.RequestException;
 import serverfacade.ServerFacade;
 import serverfacade.WebsocketFacade;
@@ -142,7 +141,8 @@ public class GameplayUI extends ClientUI {
                     To check a piece's available moves, use the select command.
                     """);
         } else {
-            ws.makeMove(authToken, gameID, new ChessMove(startPos, endPos, null), teamColor);
+            ChessPiece.PieceType promotionPiece = checkPawn(startPos, endPos);
+            ws.makeMove(authToken, gameID, new ChessMove(startPos, endPos, promotionPiece), teamColor);
             return "";
         }
     }
@@ -160,7 +160,7 @@ public class GameplayUI extends ClientUI {
         string = string.toUpperCase();
         char firstChar = string.charAt(0);
         char secondChar = string.charAt(1);
-        int row = -1;
+        int row;
         int col = -1;
         boolean firstIsLetter = true;
         switch (firstChar) {
@@ -213,8 +213,56 @@ public class GameplayUI extends ClientUI {
         return new ChessPosition(row, col);
     }
 
+    private ChessPiece.PieceType checkPawn(ChessPosition startPos, ChessPosition endPos) throws RequestException {
+        ChessPiece piece = currentGame.getBoard().getPiece(startPos);
+        if (piece.getPieceType() != ChessPiece.PieceType.PAWN) {
+            return null;
+        }
+        if ((teamColor == ChessGame.TeamColor.WHITE && endPos.getRow() == 8) ||
+                (teamColor == ChessGame.TeamColor.BLACK && endPos.getRow() == 1)) {
+            while (true) {
+                System.out.println("""
+                        PAWN PROMOTION: Select a Promotion Piece (NOTE: Checks for the first letter of your input)
+                            -   Q -> QUEEN
+                            -   K -> KNIGHT
+                            -   B -> BISHOP
+                            -   R -> ROOK
+                        """);
+                printPrompt();
+                Scanner scanner = new Scanner(System.in);
+                String command = scanner.nextLine();
+                String[] commandWords = command.split(" ");
+                if (commandWords.length > 0) {
+                    String firstWord = commandWords[0].toUpperCase();
+                    if (firstWord.equals("CANCEL")) {
+                        throw new RequestException("Move canceled", RequestException.Code.BadRequestError);
+                    }
+                    char firstChar = firstWord.charAt(0);
+                    switch (firstChar) {
+                        case 'Q' -> {
+                            return ChessPiece.PieceType.QUEEN;
+                        } case 'K' -> {
+                            return ChessPiece.PieceType.KNIGHT;
+                        } case 'B' -> {
+                            return ChessPiece.PieceType.BISHOP;
+                        } case 'R' -> {
+                            return ChessPiece.PieceType.ROOK;
+                        } default -> {
+                            String error = formatError("""
+                                    You must provide a valid promotion piece!
+                                    If you wish to cancel this move, type cancel""");
+                            System.out.println(formatError(error));
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     private String resign() throws RequestException {
         System.out.println("Are you sure you want to resign? (Y/N)");
+        printPrompt();
         Scanner scanner = new Scanner(System.in);
         String command = scanner.nextLine();
         String[] commandWords = command.split(" ");

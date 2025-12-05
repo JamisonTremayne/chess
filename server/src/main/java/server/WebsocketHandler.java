@@ -2,6 +2,7 @@
 package server;
 
 import chess.ChessGame;
+import chess.ChessPosition;
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
@@ -130,12 +131,28 @@ public class WebsocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         dataAccess.updateGame(command.getGameID(), newGameData);
         LoadGame gameLoad = new LoadGame(game);
         broadcast(null, gameLoad, command.getGameID());
-        String startPos = command.getMove().getStartPosition().toString();
-        String endPos = command.getMove().getEndPosition().toString();
-        String message = String.format("%s moved %s to %s!", auth.username(), startPos, endPos);
+        String startPos = formatPosition(command.getMove().getStartPosition());
+        String endPos = formatPosition(command.getMove().getEndPosition());
+        String message = String.format("%s has made a move %s to %s!", auth.username(), startPos, endPos);
         Notification notification = new Notification(message);
         broadcast(session, notification, command.getGameID());
         checkGameConditions(newGameData);
+    }
+
+    private String formatPosition(ChessPosition pos) {
+        String positionString = "";
+        switch (pos.getColumn()) {
+            case 1 -> positionString = "A";
+            case 2 -> positionString = "B";
+            case 3 -> positionString = "C";
+            case 4 -> positionString = "D";
+            case 5 -> positionString = "E";
+            case 6 -> positionString = "F";
+            case 7 -> positionString = "G";
+            case 8 -> positionString = "H";
+        }
+        positionString += pos.getRow();
+        return positionString;
     }
 
     private void leaveGame(UserGameCommand command, Session session) throws RequestException {

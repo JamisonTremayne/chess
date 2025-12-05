@@ -8,6 +8,7 @@ import serverfacade.WebsocketFacade;
 import websocket.messages.*;
 
 import java.util.HashSet;
+import java.util.Scanner;
 
 public class GameplayUI extends ClientUI {
 
@@ -213,7 +214,16 @@ public class GameplayUI extends ClientUI {
     }
 
     private String resign() throws RequestException {
-        ws.resign(authToken, gameID, teamColor);
+        System.out.println("Are you sure you want to resign? (Y/N)");
+        Scanner scanner = new Scanner(System.in);
+        String command = scanner.nextLine();
+        String[] commandWords = command.split(" ");
+        if (commandWords.length > 0) {
+            String firstWord = commandWords[0].toUpperCase();
+            if (firstWord.equals("Y") || firstWord.equals("YES") || firstWord.equals("CONFIRM")) {
+                ws.resign(authToken, gameID, teamColor);
+            }
+        }
         return "";
     }
 
